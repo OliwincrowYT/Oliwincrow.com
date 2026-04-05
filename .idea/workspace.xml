@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="c66cc537-a0f5-4e19-bb44-af0419d574f1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+    <list default="true" id="c66cc537-a0f5-4e19-bb44-af0419d574f1" name="Changes" comment="PAY YOUR TAXES!!!!!">
+      <change afterPath="$PROJECT_DIR$/shop/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -12,6 +15,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "OliwincrowYT"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/OliwincrowYT/Oliwincrow.com.git",
+    "accountId": "6abf961d-d539-4088-ad4e-9eb296b7bf8f"
+  }
+}]]></component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 5,
   "fromUser": false
@@ -32,6 +47,10 @@
     "git-widget-placeholder": "master",
     "javascript.preferred.runtime.type.id": "node",
     "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_interpreter_path": "C:/Users/Blake/AppData/Roaming/JetBrains/WebStorm2026.1/node/versions/24.14.1/node",
     "nodejs_package_manager_path": "npm",
     "onboarding.tips.debug.path": "C:/Users/Blake/Oliwincrow.com/src/main.js",
@@ -55,11 +74,40 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1775430023564</updated>
-      <workItem from="1775430024613" duration="231000" />
+      <workItem from="1775430024613" duration="1048000" />
     </task>
+    <task id="LOCAL-00001" summary="PAY YOUR TAXES!!!!!">
+      <option name="closed" value="true" />
+      <created>1775430303063</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1775430303063</updated>
+    </task>
+    <task id="LOCAL-00002" summary="PAY YOUR TAXES!!!!!">
+      <option name="closed" value="true" />
+      <created>1775430334832</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1775430334832</updated>
+    </task>
+    <task id="LOCAL-00003" summary="PAY YOUR TAXES!!!!!">
+      <option name="closed" value="true" />
+      <created>1775430406335</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1775430406335</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="PAY YOUR TAXES!!!!!" />
+    <option name="LAST_COMMIT_MESSAGE" value="PAY YOUR TAXES!!!!!" />
   </component>
 </project>
