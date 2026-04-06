@@ -1,10 +1,24 @@
-﻿<!DOCTYPE html>
-<html>
-<body style="background: black; color: white; font-family: sans-serif; padding: 20px;">
+﻿<!-- 1. Load the library with a custom onload function -->
+<script src="https://accounts.google.com/gsi/client" onload="initGoogleSignIn()" async defer></script>
 
-<h1>why shop bro?</h1>
+<!-- 2. Update your button to call the login function -->
+<button class="btn-glow" onclick="promptGoogleSignIn()">Login</button>
 
-<button type="button">I don't know</button>
+<script>
+    function initGoogleSignIn() {
+        google.accounts.id.initialize({
+            client_id: "1095502707976-p9ai1cq6v39jh4rr82b8d04ab7nt1503://googleusercontent.com", // Replace with your ID
+            callback: handleCredentialResponse
+        });
+    }
 
-</body>
-</html>
+    function promptGoogleSignIn() {
+        google.accounts.id.prompt(); // This shows the One Tap or Popup
+    }
+
+    function handleCredentialResponse(response) {
+        console.log("Encoded JWT ID token: " + response.credential);
+        alert("Login successful! Check console for token.");
+        // Send response.credential to your server here
+    }
+</script>
