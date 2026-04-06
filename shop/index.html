@@ -1,24 +1,119 @@
-﻿<!-- 1. Load the library with a custom onload function -->
-<script src="https://accounts.google.com/gsi/client" onload="initGoogleSignIn()" async defer></script>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Google Login</title>
+    <script src="https://google.com" async defer></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: #1e293b;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1 { margin-bottom: 1.5rem; font-weight: 300; }
+        .btn-glow {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .btn-glow:hover {
+            background: #2563eb;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        #user-info { margin-top: 1rem; display: none; }
+        .profile-pic { border-radius: 50%; width: 40px; margin-bottom: 10px; border: 2px solid #3b82f6; }
+    </style>
+</head>
+<body>
 
-<!-- 2. Update your button to call the login function -->
-<button class="btn-glow" onclick="promptGoogleSignIn()">Login</button>
+<div class="container">
+    <h1 id="status">Secure Portal</h1>
+
+    <!-- Google Sign-In Button Container -->
+    <div id="g_id_onload"
+         data-client_id="YOUR_GOOGLE_CLIENT_://googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="rectangular"
+         data-theme="filled_blue"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="left">
+    </div>
+
+    <div id="user-info">
+        <img id="user-pic" class="profile-pic" src="" alt="Profile">
+        <p id="user-name"></p>
+    </div>
+</div>
 
 <script>
-    function initGoogleSignIn() {
-        google.accounts.id.initialize({
-            client_id: "1095502707976-p9ai1cq6v39jh4rr82b8d04ab7nt1503.apps.googleusercontent.com", // Replace with your ID
-            callback: handleCredentialResponse
-        });
-    }
+    async function handleCredentialResponse(response) {
+        const statusText = document.getElementById('status');
+        const userInfo = document.getElementById('user-info');
 
-    function promptGoogleSignIn() {
-        google.accounts.id.prompt(); // This shows the One Tap or Popup
-    }
+        statusText.innerText = "Verifying Identity...";
 
-    function handleCredentialResponse(response) {
-        console.log("Encoded JWT ID token: " + response.credential);
-        alert("Login successful! Check console for token.");
-        // Send response.credential to your server here
+        try {
+            // YOUR CLOUDFLARE WORKER URL
+            const workerUrl = "https://workers.dev";
+
+            const authResponse = await fetch(workerUrl, {
+                method: "POST",
+                body: JSON.stringify({ token: response.credential }),
+                headers: { "Content-Type": "application/json" }
+            });
+
+            const result = await authResponse.json();
+
+            if (result.success) {
+                console.log("Verified User:", result.user);
+
+                // Update UI
+                statusText.innerText = "Access Granted";
+                document.querySelector('.g_id_signin').style.display = 'none';
+
+                userInfo.style.display = 'block';
+                document.getElementById('user-pic').src = result.user.picture;
+                document.getElementById('user-name').innerText = "Welcome, " + result.user.name;
+
+            } else {
+                statusText.innerText = "Login Failed: Unauthorized";
+            }
+        } catch (error) {
+            statusText.innerText = "Connection Error";
+            console.error("Worker Error:", error);
+        }
     }
 </script>
+</body>
+</html>
