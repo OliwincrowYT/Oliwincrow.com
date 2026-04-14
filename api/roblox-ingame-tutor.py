@@ -1,39 +1,48 @@
-import os
 import json
 from http.server import BaseHTTPRequestHandler
 
+# This is your AI's "Local Brain"
+KNOWLEDGE_BASE = {
+    "hello": "Greetings! I am the Oliwincrow Tutor. What are we scripting today?",
+    "remoteevent": "RemoteEvents are used to let the Client talk to the Server. Remember: Never trust the client!",
+    "nil": "A 'nil' error usually means you're trying to use something that doesn't exist. Check your variable names!",
+    "wait": "Don't use wait()! Use task.wait() instead—it's much more efficient for the Roblox task scheduler.",
+    "help": "I can help with: RemoteEvents, Nil errors, task.wait, and basic Luau syntax."
+}
+
 
 class handler(BaseHTTPRequestHandler):
-    print('started')
-
-    def do_GET(self):
-        # this looks for hi.txt in the same folder as this script
-        base_path = os.path.dirname(__file__)
-        file_path = os.path.join(base_path, 'hi.txt')
+    def do_POST(self):
+        content_length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_length)
 
         try:
-            # Check if the file exists before trying to open it
-            if os.path.exists(file_path):
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-            else:
-                content = "System Error: 'hi.txt' is missing from the api folder."
-        except Exception as e:
-            content = f"Python Error: {str(e)}"
+            data = json.loads(body.decode('utf-8'))
+            user_input = data.get("message", "").lower()
 
-        # Send Headers (Essential for Roblox)
+            # AI Logic: Search for keywords in the user's message
+            reply = "I'm not sure about that specific topic yet. Try asking about 'RemoteEvents' or 'nil' errors!"
+
+            for keyword, response in KNOWLEDGE_BASE.items():
+                if keyword in user_input:
+                    reply = response
+                    break
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
+            self.wfile.write(json.dumps({"reply": reply}).encode('utf-8'))
+
+        except Exception as e:
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(f"Internal Error: {str(e)}".encode())
+
+    def do_GET(self):
+        # Keeps your browser test working
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
-        self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-
-        # Write the content from the text file to the response
-        self.wfile.write(content.encode('utf-8'))
-
-    def do_POST(self):
-        """If you ever want to send data TO the server later"""
-        self.send_response(200)
-        self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(json.dumps({"status": "POST active"}).encode())
+        self.wfile.write(b"AI Tutor is online and waiting for POST requests.")
