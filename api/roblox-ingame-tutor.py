@@ -12,7 +12,7 @@ class handler(BaseHTTPRequestHandler):
 
         try:
             user_input = json.loads(body.decode('utf-8')).get("message", "")
-            conn = http.client.HTTPSConnection("api-inference.huggingface.co")
+            conn = http.client.HTTPSConnection("router.huggingface.co")
 
             # Use a smaller/faster model for quicker "wake up" times
             model_id = "mistralai/Mistral-7B-Instruct-v0.3"
