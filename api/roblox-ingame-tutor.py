@@ -11,21 +11,21 @@ class handler(BaseHTTPRequestHandler):
         body = self.rfile.read(content_length)
 
         try:
-            user_input = json.loads(body.decode('utf-8')).get("message", "")
+            # Parse Roblox input
+            user_input = json.loads(body.decode('utf-8')).get("message", "Hello")
+
+            # 1. New Router Endpoint
             conn = http.client.HTTPSConnection("router.huggingface.co")
 
-            # Use a smaller/faster model for quicker "wake up" times
-            model_id = "mistralai/Mistral-7B-Instruct-v0.3"
-
+            # 2. Modern Chat Format
             payload = json.dumps({
-                "inputs": f"<s>[INST] You are a Roblox Luau expert. Answer shortly: {user_input} [/INST]",
-                "parameters": {
-                    "max_new_tokens": 150,
-                    "return_full_text": False
-                },
-                "options": {
-                    "wait_for_model": True  # <--- THIS IS THE FIX
-                }
+                "model": "mistralai/Mistral-7B-Instruct-v0.3",
+                "messages": [
+                    {"role": "system", "content": "You are a Roblox Luau expert tutor. Be concise."},
+                    {"role": "user", "content": user_input}
+                ],
+                "max_tokens": 150,
+                "stream": False
             })
 
             headers = {
@@ -33,21 +33,25 @@ class handler(BaseHTTPRequestHandler):
                 "Content-Type": "application/json"
             }
 
-            # We increase the timeout because loading a model takes time
-            conn.request("POST", f"/models/{model_id}", payload, headers)
+            # 3. Requesting via /v1/chat/completions (OpenAI compatible)
+            conn.request("POST", "/v1/chat/completions", payload, headers)
             res = conn.getresponse()
-            response_data = json.loads(res.read().decode("utf-8"))
+            raw_data = res.read().decode("utf-8")
 
-            if isinstance(response_data, list) and len(response_data) > 0:
-                reply = response_data[0].get('generated_text', "").strip()
-            elif "error" in response_data:
-                reply = f"AI Status: {response_data['error']}"
-            else:
-                reply = "The system is silent. Try asking again."
+            # Safety check: Is the response actually JSON?
+            try:
+                response_json = json.loads(raw_data)
+                if "choices" in response_json:
+                    reply = response_json["choices"][0]["message"]["content"].strip()
+                else:
+                    reply = f"AI Error: {response_json.get('error', 'Unknown response format')}"
+            except:
+                reply = f"Server sent non-JSON response: {raw_data[:100]}"
 
         except Exception as e:
-            reply = f"System Error: {str(e)}"
+            reply = f"Python System Error: {str(e)}"
 
+        # Final response to Roblox
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
