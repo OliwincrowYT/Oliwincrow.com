@@ -21,7 +21,7 @@ class handler(BaseHTTPRequestHandler):
             payload = json.dumps({
                 "model": "meta-llama/Meta-Llama-3-8B-Instruct",
                 "messages": [
-                    {"role": "system", "content": "You are a Roblox Luau expert tutor. Be concise."},
+                    {"role": "system", "content": "You are a Roblox Luau expert tutor. Be concise. From now on, do not use Markdown code blocks. If you need to provide code, use the format: code('LanguageName', 'The code content here'). Do not include backticks."},
                     {"role": "user", "content": user_input}
                 ],
                 "max_tokens": 150,
