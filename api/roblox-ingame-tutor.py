@@ -19,7 +19,7 @@ class handler(BaseHTTPRequestHandler):
 
             # 2. Modern Chat Format
             payload = json.dumps({
-                "model": "mistralai/Mistral-7B-Instruct-v0.3",
+                "model": "meta-llama/Meta-Llama-3-8B-Instruct",
                 "messages": [
                     {"role": "system", "content": "You are a Roblox Luau expert tutor. Be concise."},
                     {"role": "user", "content": user_input}
