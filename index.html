@@ -137,6 +137,26 @@
             font-size: 1.15rem;
         }
 
+        .IOTD {
+            display: inline-flex; /* Keeps the box tight around the image */
+            align-items: center;
+            justify-content: center;
+            width: fit-content;   /* Crucial: stops the div from being full-width */
+            perspective: 1000px;
+        }
+
+        .IOTD img {
+            height: 200px;         /* Or whatever size you prefer */
+            width: auto;
+            display: block;
+            transform-style: preserve-3d;
+        }
+
+        /* Optional: This hides glare that spills outside the logo's border radius */
+        .js-tilt-glare {
+            border-radius: 12px;
+        }
+
         .search-wrap {
             max-width: 550px;
             margin: 0 auto;
@@ -266,6 +286,10 @@
 
 <main>
     <section class="hero">
+        <div class="IOTD">
+            <img src="logo.png" alt="Logo">
+        </div>
+
         <h1>Made For <span>Speed</span></h1>
         <p>Goo Goo Ga Ga</p>
 
@@ -323,12 +347,12 @@
     lucide.createIcons();
 
     // Initialize 3D Tilt Effect
-    VanillaTilt.init(document.querySelectorAll(".software-card, .brand-logo img"), {
-        max: -14,        // Max tilt angle
-        speed: 650,     // Transition speed
-        glare: true,    // Adds reflective light
+    VanillaTilt.init(document.querySelectorAll(".software-card, .IOTD"), {
+        max: -14,
+        speed: 650,
+        glare: true,
         "max-glare": 0.3,
-        gyroscope: true // Works on mobile tilting too
+        gyroscope: true
     });
 </script>
 
