@@ -1,48 +1,51 @@
 import json
+import os
+import http.client
 from http.server import BaseHTTPRequestHandler
-
-# This is your AI's "Local Brain"
-KNOWLEDGE_BASE = {
-    "hello": "Greetings! I am the Oliwincrow Tutor. What are we scripting today?",
-    "remoteevent": "RemoteEvents are used to let the Client talk to the Server. Remember: Never trust the client!",
-    "nil": "A 'nil' error usually means you're trying to use something that doesn't exist. Check your variable names!",
-    "wait": "Don't use wait()! Use task.wait() instead—it's much more efficient for the Roblox task scheduler.",
-    "help": "I can help with: RemoteEvents, Nil errors, task.wait, and basic Luau syntax."
-}
 
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
+        # SECURE: Grab the token from Vercel's environment
+        api_token = os.getenv("HF_TOKEN")
+
         content_length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(content_length)
 
         try:
-            data = json.loads(body.decode('utf-8'))
-            user_input = data.get("message", "").lower()
+            user_input = json.loads(body.decode('utf-8')).get("message", "")
 
-            # AI Logic: Search for keywords in the user's message
-            reply = "I'm not sure about that specific topic yet. Try asking about 'RemoteEvents' or 'nil' errors!"
+            conn = http.client.HTTPSConnection("api-inference.huggingface.co")
 
-            for keyword, response in KNOWLEDGE_BASE.items():
-                if keyword in user_input:
-                    reply = response
-                    break
+            # Change the model here if you want (Mistral and Llama 3 are popular/free)
+            model_id = "mistralai/Mistral-7B-Instruct-v0.3"
 
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
+            payload = json.dumps({
+                "inputs": f"<s>[INST] You are a Roblox Luau expert. Answer shortly: {user_input} [/INST]",
+                "parameters": {"max_new_tokens": 150}
+            })
 
-            self.wfile.write(json.dumps({"reply": reply}).encode('utf-8'))
+            headers = {
+                "Authorization": f"Bearer {api_token}",
+                "Content-Type": "application/json"
+            }
+
+            conn.request("POST", f"/models/{model_id}", payload, headers)
+            res = conn.getresponse()
+            response_data = json.loads(res.read().decode("utf-8"))
+
+            # Hugging Face usually returns a list
+            if isinstance(response_data, list):
+                full_text = response_data[0].get('generated_text', "")
+                reply = full_text.split("[/INST]")[-1].strip()
+            else:
+                reply = "The AI is currently loading or busy. Try again in a second!"
 
         except Exception as e:
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(f"Internal Error: {str(e)}".encode())
+            reply = f"System Error: {str(e)}"
 
-    def do_GET(self):
-        # Keeps your browser test working
         self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
+        self.send_header('Content-type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-        self.wfile.write(b"AI Tutor is online and waiting for POST requests.")
+        self.wfile.write(json.dumps({"reply": reply}).encode('utf-8'))
