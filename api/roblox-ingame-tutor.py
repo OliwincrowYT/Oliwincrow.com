@@ -21,22 +21,15 @@ class handler(BaseHTTPRequestHandler):
             # 2. Modern Chat Format
             # 2. Modern Chat Format
             payload = json.dumps({
-                "model": "Qwen/Qwen2.5-72B-Instruct", # Most stable router model
+                "model": "microsoft/Phi-3-mini-4k-instruct",
                 "messages": [
                     {
                         "role": "system",
-                        "content": (
-                            "You are a Roblox Luau expert tutor. Rules:\n"
-                            "1. Be concise.\n"
-                            "2. NEVER use backticks or Markdown code blocks.\n"
-                            "3. For code, ONLY use this format: code('Type', 'Content').\n"
-                            "4. Example: code('Lua', 'print(10)')"
-                        )
+                        "content": "You are a Roblox tutor. Use code('Type', 'Content') for all code. No markdown."
                     },
                     {"role": "user", "content": user_input}
                 ],
-                "max_tokens": 300,
-                "stream": False
+                "max_tokens": 200
             })
 
             headers = {
