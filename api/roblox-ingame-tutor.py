@@ -19,7 +19,7 @@ class handler(BaseHTTPRequestHandler):
 
             # 2. Modern Chat Format
             payload = json.dumps({
-                "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+                "model": "Jiunsong/supergemma4-26b-uncensored-gguf-v2",
                 "messages": [
                     {"role": "system", "content": "You are a Roblox Luau expert tutor. Be concise. From now on, do not use Markdown code blocks. If you need to provide code, use the format: code('LanguageName', 'The code content here'). Do not include backticks."},
                     {"role": "user", "content": user_input}
