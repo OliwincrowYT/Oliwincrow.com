@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor Assistant</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0e0e10; color: #efeff1; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-container { width: 400px; height: 600px; background: #18181b; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; border: 1px solid #303036; }
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 14px; border-radius: 8px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .user { align-self: flex-end; background: #9147ff; color: white; }
+        .ai { align-self: flex-start; background: #2f2f35; color: #efeff1; border: 1px solid #3f3f46; }
+        .code-block { background: #000; color: #00ff96; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; margin-top: 5px; cursor: pointer; border-left: 3px solid #00ff96; }
+        #input-area { padding: 15px; background: #1f1f23; display: flex; gap: 10px; }
+        input { flex: 1; background: #0e0e10; border: 1px solid #3f3f46; color: white; padding: 10px; border-radius: 6px; outline: none; }
+        button { background: #9147ff; border: none; color: white; padding: 0 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #772ce8; }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-area">
+        <input type="text" id="userInput" placeholder="Ask your tutor..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const msgContainer = document.getElementById('messages');
+    // YOUR ENDPOINT
+    const API_URL = '/api/roblox-ingame-tutor';
+
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage(text, 'user');
+        input.value = '';
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await response.json();
+            handleAIResponse(data.reply);
+        } catch (err) {
+            addMessage("Error: Could not connect to backend.", 'ai');
+        }
+    }
+
+    function handleAIResponse(reply) {
+        // Detect the code('Type', 'Content') format
+        const codeRegex = /code\(['"](.+?)['"],\s?['"](.+?)['"]\)/gs;
+        let match = codeRegex.exec(reply);
+
+        if (match) {
+            const cleanText = reply.replace(codeRegex, '').trim();
+            if (cleanText) addMessage(cleanText, 'ai');
+            addCodeBlock(match[2], match[1]);
+        } else {
+            addMessage(reply, 'ai');
+        }
+    }
+
+    function addMessage(text, side) {
+        const div = document.createElement('div');
+        div.className = `msg ${side}`;
+        div.innerText = text;
+        msgContainer.appendChild(div);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+
+    function addCodeBlock(code, type) {
+        const div = document.createElement('div');
+        div.className = 'code-block';
+        div.title = "Click to copy";
+        div.innerText = `[${type.toUpperCase()}]: ${code}`;
+        div.onclick = () => {
+            navigator.clipboard.writeText(code);
+            alert("Code copied to clipboard!");
+        };
+        msgContainer.appendChild(div);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+</script>
+
+</body>
+</html>

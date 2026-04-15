@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/roblox-ingame-tutor",
-      "destination": "/api/roblox-ingame-tutor.py"
+      "destination": "/api/roblox-ingame-tutor/index.html"
     }
   ]
 }
