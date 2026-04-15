@@ -21,7 +21,7 @@ class handler(BaseHTTPRequestHandler):
             # 2. Modern Chat Format
             # 2. Modern Chat Format
             payload = json.dumps({
-                "model": "meta-llama/Llama-3-8b-chat-hf",  # Most stable router model
+                "model": "mistralai/Mistral-7B-Instruct-v0.2", # Most stable router model
                 "messages": [
                     {
                         "role": "system",
