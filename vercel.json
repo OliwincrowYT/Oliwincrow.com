@@ -1,5 +1,9 @@
 {
+  "version": 2,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "api/index.py" }
+    {
+      "source": "/api/roblox-ingame-tutor",
+      "destination": "/api/roblox-ingame-tutor.py"
+    }
   ]
 }
