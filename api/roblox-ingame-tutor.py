@@ -19,14 +19,23 @@ class handler(BaseHTTPRequestHandler):
 
             # 2. Modern Chat Format
             # 2. Modern Chat Format
+            # 2. Modern Chat Format
             payload = json.dumps({
-                "model": "google/gemma-2-9b-it",  # Changed to a supported model string
+                "model": "meta-llama/Llama-3-8b-chat-hf",  # Most stable router model
                 "messages": [
-                    {"role": "system",
-                     "content": "You are a Roblox Luau expert tutor. Be concise. From now on, do not use Markdown code blocks. If you need to provide code, use the format: code('LanguageName', 'The code content here'). Do not include backticks."},
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a Roblox Luau expert tutor. Rules:\n"
+                            "1. Be concise.\n"
+                            "2. NEVER use backticks or Markdown code blocks.\n"
+                            "3. For code, ONLY use this format: code('Type', 'Content').\n"
+                            "4. Example: code('Lua', 'print(10)')"
+                        )
+                    },
                     {"role": "user", "content": user_input}
                 ],
-                "max_tokens": 500,  # Increased slightly so code isn't cut off
+                "max_tokens": 300,
                 "stream": False
             })
 
