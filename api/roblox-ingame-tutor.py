@@ -18,13 +18,15 @@ class handler(BaseHTTPRequestHandler):
             conn = http.client.HTTPSConnection("router.huggingface.co")
 
             # 2. Modern Chat Format
+            # 2. Modern Chat Format
             payload = json.dumps({
-                "model": "nvidia/Gemma-4-31B-IT-NVFP4",
+                "model": "google/gemma-2-9b-it",  # Changed to a supported model string
                 "messages": [
-                    {"role": "system", "content": "You are a Roblox Luau expert tutor. Be concise. From now on, do not use Markdown code blocks. If you need to provide code, use the format: code('LanguageName', 'The code content here'). Do not include backticks."},
+                    {"role": "system",
+                     "content": "You are a Roblox Luau expert tutor. Be concise. From now on, do not use Markdown code blocks. If you need to provide code, use the format: code('LanguageName', 'The code content here'). Do not include backticks."},
                     {"role": "user", "content": user_input}
                 ],
-                "max_tokens": 150,
+                "max_tokens": 500,  # Increased slightly so code isn't cut off
                 "stream": False
             })
 
