@@ -6,21 +6,28 @@ export default async function handler(req, res) {
     try {
         if (method === 'POST') {
             const { name, diff, time } = req.body;
-            // Use a Sorted Set (ZADD) to store scores.
-            // Redis automatically sorts these from lowest to highest.
-            await kv.zadd(`leaderboard:${diff}`, {
-                score: parseFloat(time),
-                member: `${name}:${Date.now()}`
-            });
-            return res.status(200).json({ success: true });
+            const numericTime = parseFloat(time);
+            const key = `leaderboard:${diff}`;
+
+            // 1. Check if this user already has a score in this category
+            // We use the name as the member ID to make it unique per person
+            const existingTime = await kv.zscore(key, name);
+
+            // 2. Only update if they don't have a score, or if the new time is FASTER (lower)
+            if (existingTime === null || numericTime < existingTime) {
+                await kv.zadd(key, { score: numericTime, member: name });
+                return res.status(200).json({ success: true, updated: true });
+            }
+
+            return res.status(200).json({ success: true, updated: false, msg: "Keep practicing! Previous time was faster." });
         }
 
         if (method === 'GET') {
             const { diff } = req.query;
-            // Get the top 5 fastest times
+            // Get top 5 fastest times
             const results = await kv.zrange(`leaderboard:${diff}`, 0, 4, {
                 withScores: true,
-                rev: false // false because lower time = better
+                rev: false
             });
 
             return res.status(200).json(results);
