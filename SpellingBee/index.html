@@ -3,183 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spelling Bee Stage</title>
+    <title>OLIWIN CROW | Spelling Bee</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ffcc; --bg: #0a0a0a; --panel: rgba(0,0,0,0.8); }
-        body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            background: #121212; color: white; font-family: 'Arial Black', sans-serif;
-            display: flex; justify-content: center; align-items: center; overflow: hidden;
+        :root {
+            --bg-base: #0f1115;
+            --bg-card: #1a1d23;
+            --accent-purple: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.4);
+            --text-main: #e2e8f0;
+            --text-dim: #94a3b8;
+            --border-subtle: #2d333d;
+            --danger: #ef4444;
         }
-        /* The Big Screen from your screenshot */
-        .stage-container {
-            width: 85vw; max-width: 900px; height: 60vh;
-            background: var(--panel);
-            border: 10px solid #333; border-radius: 8px;
-            box-shadow: 0 0 0 5px #111, 0 0 40px rgba(0,255,204,0.2);
-            position: relative; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-        }
-        /* LED Border lights effect */
-        .stage-container::after {
-            content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px;
-            border: 6px dotted #555; border-radius: 12px; pointer-events: none;
-        }
-        #timer { font-size: 6rem; color: #fff; text-shadow: 0 0 20px var(--accent); margin: 10px 0; }
-        h2 { font-size: 3rem; margin: 0; letter-spacing: -2px; color: var(--accent); }
 
-        .ui-row { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        input {
-            background: #000; border: 3px solid #444; color: var(--accent);
-            font-size: 2rem; padding: 15px; width: 60%; text-align: center; border-radius: 10px;
-        }
-        input:focus { border-color: var(--accent); outline: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-        button {
-            background: var(--accent); color: #000; border: none; padding: 15px 40px;
-            font-size: 1.2rem; font-weight: 900; cursor: pointer; border-radius: 5px;
-            text-transform: uppercase; transition: 0.1s;
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
         }
-        button:active { transform: scale(0.95); }
-        button:disabled { background: #444; cursor: not-allowed; }
 
-        /* HUD Leaderboard */
-        .hud-lb {
-            position: absolute; top: 20px; right: -250px; width: 220px;
-            background: rgba(0,0,0,0.7); padding: 15px; border-radius: 5px;
-            font-family: sans-serif; font-weight: bold; text-align: left;
+        /* --- NAV --- */
+        header {
+            height: 75px;
+            background: rgba(15, 17, 21, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: fixed; top: 0; width: 100%; z-index: 1000;
         }
-        .score-item { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 5px 0; }
+
+        .brand-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: white; font-weight: 800; font-size: 1.3rem; }
+        .brand-logo .dot { width: 8px; height: 8px; background: var(--accent-purple); border-radius: 50%; box-shadow: 0 0 12px var(--accent-purple); }
+
+        /* --- HERO / STAGE --- */
+        .stage {
+            padding: 140px 20px 60px;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        #timer {
+            font-size: 5rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 0 30px var(--accent-glow);
+            font-variant-numeric: tabular-nums;
+            margin: 20px 0;
+        }
+
+        /* --- GAME CARD --- */
+        .game-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .game-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            padding: 18px 24px;
+            border-radius: 14px;
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+        }
+
+        .btn {
+            background: var(--accent-purple);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px var(--accent-glow);
+        }
+
+        .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); }
+
+        /* --- LEADERBOARD --- */
+        .leaderboard-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .lb-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .score-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .score-entry:last-child { border: none; }
+
         .hidden { display: none !important; }
-        #auth-area { position: fixed; bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+        /* --- AUTH DOCK --- */
+        #auth-dock {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 1100;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="stage-container">
-        <div class="hud-lb">
-            <div style="color:var(--accent); margin-bottom:10px;">TOP PLAYERS</div>
-            <div id="lb-list"></div>
+<header>
+    <a href="#" class="brand-logo">
+        <div class="dot"></div>
+        <span>OLIWI</span>
+        <span style="color: var(--accent-purple)">NCROW</span>
+    </a>
+    <div style="display: flex; gap: 10px;">
+        <select id="diff-select" onchange="loadLeaderboard()" style="background: transparent; color: var(--text-dim); border: 1px solid var(--border-subtle); padding: 5px 15px; border-radius: 8px;">
+            <option value="Easy">Easy</option>
+            <option value="Hard">Hard</option>
+            <option value="Troll">Troll</option>
+        </select>
+    </div>
+</header>
+
+<main class="stage">
+    <div id="setup-area" class="game-card" data-tilt>
+        <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Spelling <span style="color:var(--accent-purple)">Bee</span></h1>
+        <p style="color: var(--text-dim); margin-bottom: 30px;">Compete for the fastest time in our secure repository.</p>
+
+        <div id="logged-in-controls" class="hidden">
+            <input type="text" id="display-name" placeholder="Enter Display Name" maxlength="15">
+            <button class="btn" onclick="startTest()">
+                <i data-lucide="play" size="18"></i> Start Test
+            </button>
         </div>
 
-        <div id="setup-screen">
-            <h2>SPELLING BEE</h2>
-            <select id="diff" onchange="loadLB()" style="background:#222; color:#fff; border:none; padding:10px; margin-bottom:20px;">
-                <option value="Easy">EASY</option><option value="Hard">HARD</option><option value="Troll">TROLL</option>
-            </select>
-            <div class="ui-row">
-                <input type="text" id="p-name" placeholder="YOUR NAME" maxlength="12">
-                <button id="start-btn" onclick="startGame()">START STAGE</button>
-            </div>
-        </div>
-
-        <div id="game-screen" class="hidden">
-            <div id="timer">00:00.000</div>
-            <div class="ui-row">
-                <input type="text" id="word-box" autocomplete="off" placeholder="TYPE...">
-                <button onclick="checkWord()">SUBMIT</button>
-                <button onclick="hear()" style="background:#444; color:#fff; font-size:0.8rem;">REPLAY AUDIO</button>
-            </div>
+        <div id="login-prompt" style="color: var(--text-dim);">
+            <i data-lucide="lock" size="40" style="margin-bottom: 15px; opacity: 0.5;"></i>
+            <p>Please authenticate below to access the stage</p>
         </div>
     </div>
 
-    <div id="auth-area">
-        <div id="g-btn"></div>
-        <button id="admin-wipe" class="hidden" onclick="wipe()" style="background:red; color:white; font-size:0.6rem;">WIPE DATA</button>
+    <div id="game-area" class="hidden">
+        <div id="timer">00:00.000</div>
+        <div class="game-card" data-tilt>
+            <button class="btn btn-secondary" onclick="playSound()" style="margin-bottom: 20px;">
+                <i data-lucide="volume-2"></i> Replay Audio
+            </button>
+            <input type="text" id="word-input" placeholder="Spell the word..." autocomplete="off">
+            <button class="btn" id="submit-btn" onclick="checkWord()">Submit</button>
+        </div>
     </div>
+</main>
 
+<div class="leaderboard-section">
+    <div class="lb-card" data-tilt>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h3 style="font-size: 1.2rem;"><i data-lucide="trophy" size="18" style="color:var(--accent-purple); vertical-align:middle;"></i> Top Players</h3>
+            <span id="category-tag" class="status-tag" style="font-size:0.7rem; color:var(--accent-purple); background:rgba(139,92,246,0.1); padding:4px 10px; border-radius:20px;">Easy</span>
+        </div>
+        <div id="leaderboard-content">
+            </div>
+    </div>
+</div>
+
+<div id="auth-dock">
+    <div id="g_id_onload" data-client_id="FETCHING" data-callback="onAuth"></div>
+    <div id="google-btn-container"></div>
+    <button id="admin-reset" class="btn btn-secondary hidden" onclick="resetDB()" style="color:var(--danger); font-size:0.8rem; padding:8px 16px;">
+        <i data-lucide="trash-2" size="14"></i> Reset Database
+    </button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
 <script>
-    const words = { Easy: ["Apple"], Hard: ["Rhythm"], Troll: ["Supercalifragilisticexpialidocious"] };
-    let curWord, startT, interval;
+    const WORDS = { Easy: ["Apple"], Hard: ["Rhythm"], Troll: ["Supercalifragilisticexpialidocious"] };
+    let currentWord, startTime, timerInterval;
     window.token = null;
 
-    // Safety: Load LB even if auth fails
-    window.onload = () => {
-        setupAuth();
-        loadLB();
+    // Load initial data
+    window.onload = async () => {
+        lucide.createIcons();
+        VanillaTilt.init(document.querySelectorAll("[data-tilt]"), { max: 10, speed: 400, glare: true, "max-glare": 0.2 });
+
+        // Fetch Client ID
+        const res = await fetch('/api/score?config=true');
+        const { clientId } = await res.json();
+
+        google.accounts.id.initialize({ client_id: clientId, callback: onAuth });
+        google.accounts.id.renderButton(document.getElementById("google-btn-container"), { theme: "filled_black", shape: "pill" });
+
+        loadLeaderboard();
     };
 
-    async function setupAuth() {
-        try {
-            const r = await fetch('/api/score?config=true');
-            const d = await r.json();
-            google.accounts.id.initialize({ client_id: d.clientId, callback: (res) => {
-                window.token = res.credential;
-                document.getElementById('start-btn').disabled = false;
-                checkAdmin();
-            }});
-            google.accounts.id.renderButton(document.getElementById("g-btn"), { theme: "filled_black" });
-        } catch(e) { console.log("Auth offline"); }
+    function onAuth(response) {
+        window.token = response.credential;
+        document.getElementById('logged-in-controls').classList.remove('hidden');
+        document.getElementById('login-prompt').classList.add('hidden');
+        checkAdmin();
     }
 
     async function checkAdmin() {
-        const r = await fetch('/api/score', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({token: window.token}) });
-        const d = await r.json();
-        if(d.isAdmin) document.getElementById('admin-wipe').classList.remove('hidden');
+        const res = await fetch('/api/score', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({token: window.token}) });
+        const { isAdmin } = await res.json();
+        if(isAdmin) document.getElementById('admin-reset').classList.remove('hidden');
     }
 
-    function hear() {
+    function playSound() {
         window.speechSynthesis.cancel();
-        let u = new SpeechSynthesisUtterance(curWord);
+        const u = new SpeechSynthesisUtterance(currentWord);
         u.rate = 0.8;
         window.speechSynthesis.speak(u);
     }
 
-    function startGame() {
-        if(!window.token) return alert("Log in first!");
-        const name = document.getElementById('p-name').value.trim();
-        if(!name) return alert("Enter a name!");
+    function startTest() {
+        if(!document.getElementById('display-name').value) return alert("Enter a name first!");
 
-        curWord = words[document.getElementById('diff').value][0];
-        document.getElementById('setup-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.remove('hidden');
+        const diff = document.getElementById('diff-select').value;
+        currentWord = WORDS[diff][0];
 
-        document.getElementById('word-box').value = "";
-        document.getElementById('word-box').focus();
+        document.getElementById('setup-area').classList.add('hidden');
+        document.getElementById('game-area').classList.remove('hidden');
+        document.getElementById('word-input').focus();
 
-        hear();
-        startT = Date.now();
-        interval = setInterval(() => {
-            let d = Date.now() - startT;
-            let s = Math.floor(d/1000).toString().padStart(2,'0');
-            let ms = (d%1000).toString().padStart(3,'0');
+        playSound();
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const delta = Date.now() - startTime;
+            const s = Math.floor(delta/1000).toString().padStart(2,'0');
+            const ms = (delta%1000).toString().padStart(3,'0');
             document.getElementById('timer').innerText = `${s}:${ms}`;
         }, 10);
     }
 
     async function checkWord() {
-        if(document.getElementById('word-box').value.toLowerCase().trim() === curWord.toLowerCase()) {
-            clearInterval(interval);
-            const finalT = (Date.now() - startT) / 1000;
+        if(document.getElementById('word-input').value.toLowerCase().trim() === currentWord.toLowerCase()) {
+            clearInterval(timerInterval);
+            const timeTaken = (Date.now() - startTime) / 1000;
+
+            document.getElementById('submit-btn').innerText = "Uploading...";
             await fetch('/api/score', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                    name: document.getElementById('p-name').value,
-                    diff: document.getElementById('diff').value,
-                    time: finalT,
+                    name: document.getElementById('display-name').value,
+                    diff: document.getElementById('diff-select').value,
+                    time: timeTaken,
                     token: window.token
                 })
             });
-            location.reload(); // Quick reset
+            location.reload();
         }
     }
 
-    async function loadLB() {
-        const r = await fetch(`/api/score?diff=${document.getElementById('diff').value}`);
-        const d = await r.json();
-        let html = "";
-        for(let i=0; i<d.length; i+=2) {
-            html += `<div class="score-item"><span>${d[i]}</span><span style="color:var(--accent)">${d[i+1]}s</span></div>`;
+    async function loadLeaderboard() {
+        const diff = document.getElementById('diff-select').value;
+        document.getElementById('category-tag').innerText = diff;
+        const res = await fetch(`/api/score?diff=${diff}`);
+        const data = await res.json();
+
+        const container = document.getElementById('leaderboard-content');
+        container.innerHTML = "";
+        for(let i=0; i < data.length; i+=2) {
+            container.innerHTML += `
+                <div class="score-entry">
+                    <span style="font-weight:600;">${data[i]}</span>
+                    <span style="color:var(--accent-purple); font-weight:800;">${data[i+1]}s</span>
+                </div>`;
         }
-        document.getElementById('lb-list').innerHTML = html || "Empty";
     }
 
-    async function wipe() {
-        if(confirm("Wipe?")) {
-            await fetch('/api/score', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({diff: document.getElementById('diff').value, token: window.token}) });
-            loadLB();
+    async function resetDB() {
+        if(confirm("Wipe this category?")) {
+            await fetch('/api/score', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({diff: document.getElementById('diff-select').value, token: window.token}) });
+            loadLeaderboard();
         }
     }
 </script>
