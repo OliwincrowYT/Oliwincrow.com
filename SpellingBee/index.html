@@ -3,110 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Spelling Bee</title>
+    <title>Spelling Bee</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root {
-            --primary: #4a90e2;
-            --secondary: #2ecc71;
-            --dark: #2c3e50;
-            --light: #f8f9fa;
-            --danger: #e74c3c;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: var(--dark);
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            margin: 0;
-        }
-
-        .container {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-        }
-
-        h2 { margin-top: 0; color: var(--dark); }
-
-        select, input, button {
-            width: 100%;
-            padding: 14px;
-            margin: 12px 0;
-            border-radius: 8px;
-            border: 2px solid #eee;
-            font-size: 1rem;
-            box-sizing: border-box;
-            outline: none;
-            transition: 0.2s;
-        }
-
-        input:focus { border-color: var(--primary); }
-        input[readonly] { background-color: #f0f0f0; cursor: not-allowed; }
-
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        button:hover { background: #357abd; transform: translateY(-1px); }
-        button:active { transform: translateY(0); }
-
-        .btn-secondary { background: #7f8c8d; margin-top: 0; }
-
-        #timer {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 2.5rem;
-            color: var(--danger);
-            font-weight: bold;
-            margin: 20px 0;
-            background: #fff5f5;
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .word-display { font-style: italic; color: #7f8c8d; margin-bottom: 10px; }
-
-        .leaderboard {
-            margin-top: 30px;
-            text-align: left;
-            border-top: 2px solid #eee;
-            padding-top: 20px;
-        }
-
-        .score-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: var(--light);
-            margin-bottom: 5px;
-            border-radius: 6px;
-        }
-
-        .score-entry span:last-child { font-weight: bold; color: var(--secondary); }
-
-        #admin-panel {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px dashed #ccc;
-            border-radius: 8px;
-        }
-
+        :root { --primary: #4a90e2; --secondary: #2ecc71; --dark: #2c3e50; --light: #f8f9fa; --danger: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--dark); display: flex; flex-direction: column; align-items: center; padding: 40px 20px; margin: 0; }
+        .container { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 100%; max-width: 500px; text-align: center; }
+        select, input, button { width: 100%; padding: 14px; margin: 12px 0; border-radius: 8px; border: 2px solid #eee; font-size: 1rem; box-sizing: border-box; outline: none; }
+        button { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: 0.2s; }
+        button:disabled { background: #ccc; }
+        #timer { font-family: monospace; font-size: 2.5rem; color: var(--danger); margin: 20px 0; background: #fff5f5; padding: 10px; border-radius: 8px; }
+        .leaderboard { margin-top: 30px; text-align: left; border-top: 2px solid #eee; padding-top: 20px; }
+        .score-entry { display: flex; justify-content: space-between; padding: 8px 12px; background: var(--light); margin-bottom: 5px; border-radius: 6px; }
         .hidden { display: none; }
-        .reset-btn { background: var(--danger); font-size: 0.8rem; padding: 8px; margin-top: 15px; }
+        #auth-dock { margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -115,194 +25,137 @@
     <div id="setup-area">
         <h2>Spelling Bee</h2>
         <select id="difficulty" onchange="displayLeaderboard()">
-            <option value="Easy">Easy</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Hard">Hard</option>
-            <option value="Expert">Expert</option>
-            <option value="Genius">Genius</option>
-            <option value="Troll">Troll</option>
+            <option value="Easy">Easy</option><option value="Intermediate">Intermediate</option>
+            <option value="Hard">Hard</option><option value="Expert">Expert</option>
+            <option value="Genius">Genius</option><option value="Troll">Troll</option>
         </select>
-        <input type="text" id="username" placeholder="Enter Name" maxlength="15">
-        <button onclick="startGame()">Start Test</button>
+
+        <div id="game-controls" class="hidden">
+            <input type="text" id="username" placeholder="Enter Display Name" maxlength="15">
+            <button onclick="startGame()">Start Test</button>
+        </div>
+
+        <div id="login-msg" style="color: #888; font-size: 0.85rem; margin: 15px 0;">
+            Sign in to participate
+        </div>
     </div>
 
     <div id="game-area" class="hidden">
-        <div id="difficulty-tag" style="font-size: 0.7rem; font-weight: bold; color: #888;"></div>
-        <div class="word-display">Listen carefully...</div>
-        <button class="btn-secondary" onclick="speakWord()">🔊 Replay Word</button>
+        <button style="background:#7f8c8d" onclick="speakWord()">🔊 Hear Word</button>
         <div id="timer">00:00:000</div>
-        <input type="text" id="word-input" autocomplete="off" onpaste="return false" placeholder="Type here...">
+        <input type="text" id="word-input" autocomplete="off" onpaste="return false" placeholder="Spell it here...">
         <button id="submit-btn" onclick="checkSpelling()">Submit</button>
     </div>
 
     <div class="leaderboard">
-        <h3>🏆 High Scores</h3>
+        <h3>Top Scores</h3>
         <div id="leaderboard-content"></div>
     </div>
 
-    <div id="admin-panel">
-        <p style="font-size: 0.7rem; color: #888; text-transform: uppercase;">Admin Controls</p>
-        <div id="g_id_onload"
-             data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-             data-callback="handleCredentialResponse">
-        </div>
-        <div class="g_id_signin" data-type="standard" data-size="small"></div>
-        <button id="reset-btn" class="hidden reset-btn" onclick="resetLeaderboard()">🗑️ WIPE CATEGORY</button>
+    <div id="auth-dock">
+        <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com" data-callback="handleAuth"></div>
+        <div class="g_id_signin" data-type="standard" data-shape="pill"></div>
+        <button id="reset-btn" class="hidden" onclick="resetLB()" style="background:var(--danger); font-size:0.7rem; margin-top:20px; width:auto; padding:8px 15px;">RESET CATEGORY</button>
     </div>
 </div>
 
 <script>
-    const wordBank = {
-        Easy: ["Tree", "Apple", "Book", "Cloud", "Jump"],
-        Intermediate: ["Bullet", "Garden", "Kitchen", "Window", "Travel"],
-        Hard: ["Trapeze", "Acoustic", "Boulevard", "Hyphen", "Quarantine"],
-        Expert: ["Rhythm", "Pneumonia", "Onomatopoeia", "Queue", "Psychiatrist"],
-        Genius: ["Conscientious", "Maintenance", "Occurrence", "Pharaoh", "Handkerchief"],
-        Troll: ["Supercalifragilisticexpialidocious"]
-    };
-
+    const wordBank = { Easy: ["Tree"], Intermediate: ["Bullet"], Hard: ["Trapeze"], Expert: ["Rhythm"], Genius: ["Pharaoh"], Troll: ["Supercalifragilisticexpialidocious"] };
     let startTime, timerInterval, currentWord;
-    window.adminToken = null;
+    window.userToken = null;
 
     window.onload = displayLeaderboard;
 
     function speakWord() {
-        if (!currentWord) return;
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(currentWord);
-        utterance.rate = 0.85;
-        window.speechSynthesis.speak(utterance);
+        const u = new SpeechSynthesisUtterance(currentWord);
+        u.rate = 0.8;
+        window.speechSynthesis.speak(u);
     }
 
-    function updateTimer() {
-        const diff = new Date().getTime() - startTime;
-        const m = Math.floor(diff / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        const ms = diff % 1000;
-        document.getElementById('timer').innerText =
-            `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}:${ms.toString().padStart(3, '0')}`;
-    }
+    async function handleAuth(response) {
+        window.userToken = response.credential;
+        document.getElementById('game-controls').classList.remove('hidden');
+        document.getElementById('login-msg').classList.add('hidden');
 
-    function startGame() {
-        const name = document.getElementById('username').value.trim();
-        if (!name) return alert("Please enter a name!");
-
-        const diff = document.getElementById('difficulty').value;
-        const words = wordBank[diff];
-        currentWord = words[Math.floor(Math.random() * words.length)];
-
-        document.getElementById('username').readOnly = true;
-        document.getElementById('difficulty-tag').innerText = `Difficulty: ${diff}`;
-        document.getElementById('setup-area').classList.add('hidden');
-        document.getElementById('game-area').classList.remove('hidden');
-
-        const input = document.getElementById('word-input');
-        input.value = "";
-        input.focus();
-        input.onkeypress = (e) => { if(e.key === 'Enter') checkSpelling(); };
-
-        speakWord();
-        startTime = new Date().getTime();
-        timerInterval = setInterval(updateTimer, 10);
-    }
-
-    async function checkSpelling() {
-        const userValue = document.getElementById('word-input').value.trim();
-        if (userValue.toLowerCase() === currentWord.toLowerCase()) {
-            clearInterval(timerInterval);
-            const timeTaken = (new Date().getTime() - startTime) / 1000;
-
-            document.getElementById('submit-btn').disabled = true;
-            document.getElementById('submit-btn').innerText = "SAVING SCORE...";
-
-            await saveScore(document.getElementById('username').value, document.getElementById('difficulty').value, timeTaken);
-
-            alert(`Correct! Finished in ${timeTaken.toFixed(3)}s`);
-            resetGame();
-        } else {
-            alert("Incorrect spelling! Try again.");
-            document.getElementById('word-input').focus();
-        }
-    }
-
-    async function saveScore(name, diff, time) {
-        // Absolute path to root API
-        await fetch('/api/score', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, diff, time })
-        });
-        displayLeaderboard();
-    }
-
-    async function displayLeaderboard() {
-        const diff = document.getElementById('difficulty').value;
-        const content = document.getElementById('leaderboard-content');
-        try {
-            const response = await fetch(`/api/score?diff=${diff}`);
-            const data = await response.json();
-            content.innerHTML = "";
-            if (!data.length) {
-                content.innerHTML = "<div style='color:#888'>No scores yet!</div>";
-                return;
-            }
-            // Display top 5 pairs (member, score)
-            for (let i = 0; i < data.length; i += 2) {
-                content.innerHTML += `
-                    <div class="score-entry">
-                        <span>${data[i]}</span>
-                        <span>${parseFloat(data[i+1]).toFixed(3)}s</span>
-                    </div>`;
-            }
-        } catch (e) {
-            content.innerHTML = "<div style='color:red'>Leaderboard unavailable.</div>";
-        }
-    }
-
-    // --- Admin Functionality ---
-    async function handleCredentialResponse(response) {
-        // Ask the backend if this user is the admin (checks against ADMIN_EMAIL env var)
-        const check = await fetch('/api/score', {
+        const res = await fetch('/api/score', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: response.credential })
         });
+        const { isAdmin } = await res.json();
+        if (isAdmin) document.getElementById('reset-btn').classList.remove('hidden');
+    }
 
-        const { isAdmin } = await check.json();
+    function startGame() {
+        const name = document.getElementById('username').value.trim();
+        if (!name) return alert("Please set a display name first!");
 
-        if (isAdmin) {
-            window.adminToken = response.credential;
-            document.getElementById('reset-btn').classList.remove('hidden');
-            alert("Admin Access Granted");
-        } else {
-            alert("Login Successful. Admin button hidden (Authorized users only).");
+        currentWord = wordBank[document.getElementById('difficulty').value][0];
+        document.getElementById('setup-area').classList.add('hidden');
+        document.getElementById('game-area').classList.remove('hidden');
+
+        const input = document.getElementById('word-input');
+        input.value = ""; input.focus();
+        input.onkeypress = (e) => { if(e.key === 'Enter') checkSpelling(); };
+
+        speakWord();
+        startTime = new Date().getTime();
+        timerInterval = setInterval(() => {
+            const d = new Date().getTime() - startTime;
+            const s = Math.floor((d % 60000) / 1000), ms = d % 1000;
+            document.getElementById('timer').innerText = `${s.toString().padStart(2,'0')}:${ms.toString().padStart(3,'0')}`;
+        }, 10);
+    }
+
+    async function checkSpelling() {
+        if (document.getElementById('word-input').value.trim().toLowerCase() === currentWord.toLowerCase()) {
+            clearInterval(timerInterval);
+            const time = (new Date().getTime() - startTime) / 1000;
+            document.getElementById('submit-btn').innerText = "UPDATING PERSONAL BEST...";
+
+            await fetch('/api/score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('username').value,
+                    diff: document.getElementById('difficulty').value,
+                    time,
+                    token: window.userToken
+                })
+            });
+            resetGame();
+            displayLeaderboard();
         }
     }
 
-    async function resetLeaderboard() {
-        if (!confirm("Are you sure? This deletes the entire leaderboard for this category.")) return;
+    async function displayLeaderboard() {
         const diff = document.getElementById('difficulty').value;
-        const res = await fetch('/api/score', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ diff, token: window.adminToken })
-        });
-        if (res.ok) {
-            alert("Leaderboard Reset!");
+        const res = await fetch(`/api/score?diff=${diff}`);
+        const data = await res.json();
+        const container = document.getElementById('leaderboard-content');
+        container.innerHTML = data.length ? "" : "No scores yet.";
+        for (let i = 0; i < data.length; i += 2) {
+            container.innerHTML += `<div class="score-entry"><span>${data[i]}</span><span>${parseFloat(data[i+1]).toFixed(3)}s</span></div>`;
+        }
+    }
+
+    async function resetLB() {
+        if (confirm("Reset current difficulty data?")) {
+            await fetch('/api/score', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ diff: document.getElementById('difficulty').value, token: window.userToken })
+            });
             displayLeaderboard();
-        } else {
-            alert("Reset failed. Token may be expired.");
         }
     }
 
     function resetGame() {
         document.getElementById('setup-area').classList.remove('hidden');
         document.getElementById('game-area').classList.add('hidden');
-        document.getElementById('username').readOnly = false;
-        document.getElementById('submit-btn').disabled = false;
         document.getElementById('submit-btn').innerText = "Submit";
         clearInterval(timerInterval);
-        document.getElementById('timer').innerText = "00:00:000";
     }
 </script>
 </body>
