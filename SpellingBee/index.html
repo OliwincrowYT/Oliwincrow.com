@@ -3,63 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OLIWIN CROW | Multi-Room Stage</title>
+    <title>OLIWIN CROW | Dark Stage</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0f1115; --card: #1a1d23; --accent: #8b5cf6; --accent-glow: rgba(139, 92, 246, 0.4); --text: #e2e8f0; --dim: #94a3b8; --border: #2d333d; }
+        :root {
+            --bg: #050505; --card: #0f1115; --accent: #a855f7;
+            --accent-glow: rgba(168, 85, 247, 0.5); --text: #f8fafc;
+            --dim: #64748b; --border: #1e293b;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg); color: var(--text); min-height: 100vh; background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%); padding-top: 80px; }
-        header { height: 75px; background: rgba(15,17,21,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; position: fixed; top: 0; width: 100%; z-index: 1000; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #timer { font-size: 4rem; font-weight: 800; text-shadow: 0 0 20px var(--accent-glow); margin: 15px 0; font-variant-numeric: tabular-nums; }
-        input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 14px; border-radius: 12px; color: white; font-size: 1.1rem; text-align: center; outline: none; margin-bottom: 15px; }
-        input:focus { border-color: var(--accent); }
-        .btn { background: var(--accent); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; text-transform: uppercase; transition: 0.2s; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 0 20px var(--accent-glow); }
-        .btn-secondary { background: #333; margin-top: 10px; }
-        .room-tag { background: rgba(139, 92, 246, 0.1); color: var(--accent); padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
+        body {
+            background: var(--bg); color: var(--text); min-height: 100vh; overflow: hidden;
+            background-image: radial-gradient(circle at 50% -20%, var(--accent-glow) 0%, transparent 40%);
+        }
+
+        header {
+            height: 70px; background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); display: flex; align-items: center;
+            justify-content: space-between; padding: 0 40px; position: fixed; top: 0; width: 100%; z-index: 1000;
+        }
+        .logo { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); }
+
+        .container { height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 28px;
+            padding: 50px; width: 100%; max-width: 550px; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        #timer { font-size: 5rem; font-weight: 800; color: #fff; margin: 10px 0; font-variant-numeric: tabular-nums; }
+
+        input {
+            width: 100%; background: #000; border: 1px solid var(--border); padding: 16px;
+            border-radius: 14px; color: white; font-size: 1.1rem; text-align: center;
+            outline: none; margin-bottom: 20px; transition: 0.2s;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2); }
+
+        .btn {
+            background: var(--accent); color: white; border: none; padding: 16px;
+            border-radius: 14px; font-weight: 800; cursor: pointer; width: 100%;
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px var(--accent-glow); }
+        .btn-secondary { background: transparent; border: 1px solid var(--border); margin-top: 10px; color: var(--dim); }
+        .btn-secondary:hover { color: white; border-color: white; }
+
+        .room-badge {
+            display: inline-block; padding: 6px 16px; background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 100px;
+            color: var(--accent); font-weight: 800; font-size: 0.75rem; margin-bottom: 20px;
+        }
+
         .hidden { display: none !important; }
+        #g_signin_btn { display: inline-block; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight:800; font-size:1.2rem;">OLIWIN<span style="color:var(--accent)">CROW</span></div>
-    <div id="g_signin_wrapper"></div>
+    <div class="logo"><div class="dot"></div> OLIWIN<span style="color:var(--accent)">CROW</span></div>
+    <div id="g_signin_btn"></div>
 </header>
 
 <div class="container">
-    <div id="lobby-view" class="card">
-        <h2 style="margin-bottom:10px;">The Stage</h2>
-        <p id="auth-status" style="color:var(--dim); margin-bottom:20px;">Please login to join a room</p>
+    <div id="view-lobby" class="card">
+        <h2 style="font-size: 2rem; margin-bottom: 10px;">The Stage</h2>
+        <p id="auth-hint" style="color: var(--dim); margin-bottom: 30px;">Authenticate to access rooms</p>
 
-        <div id="lobby-actions" class="hidden">
-            <input type="text" id="display-name" placeholder="Your Display Name" maxlength="12">
-            <button class="btn" onclick="createRoom()">Create Private Room</button>
-            <div style="margin:20px 0; color:var(--dim); font-size:0.8rem;">OR</div>
-            <input type="text" id="join-code-input" placeholder="Enter Room Code (e.g. B4DLQ)" maxlength="5" style="text-transform:uppercase;">
-            <button class="btn btn-secondary" onclick="joinRoom()">Join Room</button>
+        <div id="lobby-controls" class="hidden">
+            <input type="text" id="p-name" placeholder="Display Name" maxlength="12">
+            <button class="btn" onclick="createRoom()">Create Room</button>
+            <div style="margin: 25px 0; color: #334155; font-size: 0.7rem; font-weight: 800;">OR JOIN EXISTING</div>
+            <input type="text" id="join-code" placeholder="Enter Code (e.g. B4DLQ)" maxlength="5" style="text-transform: uppercase;">
+            <button class="btn btn-secondary" onclick="joinRoom()">Join Stage</button>
         </div>
     </div>
 
-    <div id="room-view" class="card hidden">
-        <div class="room-tag" id="room-display">ROOM: -----</div>
+    <div id="view-room" class="card hidden">
+        <div class="room-badge" id="display-code">ROOM: -----</div>
         <div id="timer">0.000</div>
 
-        <div id="host-zone" class="hidden">
-            <input type="text" id="host-word" placeholder="Host: Type custom word...">
+        <div id="host-tools" class="hidden">
+            <input type="text" id="h-word" placeholder="Host: Set the word">
             <button class="btn" onclick="sendWord()">Start Round</button>
         </div>
 
-        <div id="player-zone" class="hidden">
-            <p id="player-status" style="color:var(--dim); margin-bottom:10px;">Waiting for host...</p>
-            <div id="input-wrap" class="hidden">
-                <input type="text" id="word-input" placeholder="Spell the word..." autocomplete="off">
-                <button class="btn" onclick="submitSpelling()">Submit</button>
+        <div id="player-tools" class="hidden">
+            <p id="player-msg" style="color: var(--dim);">Waiting for host to set the word...</p>
+            <div id="game-input-area" class="hidden">
+                <input type="text" id="word-input" placeholder="Type here..." autocomplete="off">
+                <button class="btn" onclick="submitAttempt()">Submit</button>
             </div>
         </div>
     </div>
@@ -69,26 +107,27 @@
     let pusher, channel, curRoom, curWord, startT, timerInt;
 
     window.onload = async () => {
+        lucide.createIcons();
         const res = await fetch('/api/score?config=true');
         const cfg = await res.json();
 
         google.accounts.id.initialize({
             client_id: cfg.clientId,
             callback: (r) => {
-                sessionStorage.setItem('token', r.credential);
-                initLobby();
+                sessionStorage.setItem('bee_token', r.credential);
+                showLobby();
             }
         });
-        google.accounts.id.renderButton(document.getElementById("g_signin_wrapper"), { theme: "filled_black", shape: "pill" });
+        google.accounts.id.renderButton(document.getElementById("g_signin_btn"), { theme: "filled_black", shape: "pill" });
 
         pusher = new Pusher(cfg.pusherKey, { cluster: cfg.pusherCluster });
-        if (sessionStorage.getItem('token')) initLobby();
+        if (sessionStorage.getItem('bee_token')) showLobby();
     };
 
-    function initLobby() {
-        document.getElementById('auth-status').classList.add('hidden');
-        document.getElementById('g_signin_wrapper').classList.add('hidden');
-        document.getElementById('lobby-actions').classList.remove('hidden');
+    function showLobby() {
+        document.getElementById('g_signin_btn').classList.add('hidden');
+        document.getElementById('auth-hint').classList.add('hidden');
+        document.getElementById('lobby-controls').classList.remove('hidden');
     }
 
     function createRoom() {
@@ -98,49 +137,49 @@
     }
 
     function joinRoom() {
-        const code = document.getElementById('join-code-input').value.toUpperCase();
-        if (code.length < 5) return alert("Invalid Code");
+        const code = document.getElementById('join-code').value.toUpperCase();
+        if (code.length < 5) return alert("Enter 5-digit code");
         sessionStorage.setItem('isHost', 'false');
         enterRoom(code);
     }
 
     function enterRoom(code) {
         curRoom = code;
-        document.getElementById('lobby-view').classList.add('hidden');
-        document.getElementById('room-view').classList.remove('hidden');
-        document.getElementById('room-display').innerText = `ROOM: ${code}`;
+        document.getElementById('view-lobby').classList.add('hidden');
+        document.getElementById('view-room').classList.remove('hidden');
+        document.getElementById('display-code').innerText = `ROOM: ${code}`;
 
         if (sessionStorage.getItem('isHost') === 'true') {
-            document.getElementById('host-zone').classList.remove('hidden');
+            document.getElementById('host-tools').classList.remove('hidden');
         } else {
-            document.getElementById('player-zone').classList.remove('hidden');
+            document.getElementById('player-tools').classList.remove('hidden');
         }
 
         channel = pusher.subscribe(`room-${code}`);
         channel.bind('new-round', (data) => {
             curWord = data.word;
-            startRound();
+            runRound();
         });
     }
 
     async function sendWord() {
-        const word = document.getElementById('host-word').value.trim();
+        const word = document.getElementById('h-word').value.trim();
         const res = await fetch('/api/score', {
             method: 'POST',
             headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ action: 'host_command', command: 'set_word', value: word, room: curRoom, token: sessionStorage.getItem('token') })
+            body: JSON.stringify({ action: 'host_command', command: 'set_word', value: word, room: curRoom, token: sessionStorage.getItem('bee_token') })
         });
-        if (!res.ok) alert("Invalid Word!");
+        if (!res.ok) alert("Invalid Word (Not in Dictionary)!");
     }
 
-    function startRound() {
-        document.getElementById('input-wrap').classList.remove('hidden');
-        document.getElementById('player-status').classList.add('hidden');
+    function runRound() {
+        document.getElementById('game-input-area').classList.remove('hidden');
+        document.getElementById('player-msg').classList.add('hidden');
         document.getElementById('word-input').value = "";
         document.getElementById('word-input').focus();
 
         const utter = new SpeechSynthesisUtterance(curWord);
-        utter.rate = 0.85;
+        utter.rate = 0.9;
         window.speechSynthesis.speak(utter);
 
         startT = Date.now();
@@ -149,7 +188,7 @@
         }, 10);
     }
 
-    async function submitSpelling() {
+    async function submitAttempt() {
         if (document.getElementById('word-input').value.toLowerCase().trim() === curWord.toLowerCase()) {
             clearInterval(timerInt);
             const time = (Date.now() - startT) / 1000;
@@ -157,14 +196,12 @@
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                    name: document.getElementById('display-name').value || "Guest",
-                    diff: 'Multiplayer',
-                    time,
-                    token: sessionStorage.getItem('token')
+                    name: document.getElementById('p-name').value || "Guest",
+                    diff: 'Multiplayer', time, token: sessionStorage.getItem('bee_token')
                 })
             });
-            alert(`Cleared in ${time}s!`);
-            location.reload(); // Returns to lobby while keeping token in sessionStorage
+            alert(`Round Finished! Time: ${time}s`);
+            location.reload();
         }
     }
 </script>
