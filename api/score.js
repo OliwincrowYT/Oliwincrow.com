@@ -26,23 +26,24 @@ export default async function handler(req, res) {
             const { command, value, room } = req.body;
 
             if (command === 'set_word') {
-                // Auto-Correct/Validation Check
+                // Automatic word validation via Dictionary API
                 const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${value}`);
-                if (!dictRes.ok) return res.status(400).json({ error: "Invalid word" });
+                if (!dictRes.ok) return res.status(400).json({ error: "Word not found in dictionary" });
 
-                await pusher.trigger(room, 'new-word', { word: value, host: userEmail });
-                return res.status(200).json({ success: true });
-            }
-
-            if (command === 'start_game') {
-                await pusher.trigger(room, 'game-start', { timestamp: Date.now() });
+                await pusher.trigger(room, 'new-round', { word: value, host: userEmail });
                 return res.status(200).json({ success: true });
             }
         }
 
-        // --- STANDARD LEADERBOARD LOGIC ---
+        // --- LEADERBOARD & AUTH ---
         if (method === 'GET') {
-            if (req.query.config === 'true') return res.status(200).json({ clientId: GOOGLE_CLIENT_ID, pusherKey: process.env.PUSHER_KEY, pusherCluster: process.env.PUSHER_CLUSTER });
+            if (req.query.config === 'true') {
+                return res.status(200).json({
+                    clientId: GOOGLE_CLIENT_ID,
+                    pusherKey: process.env.PUSHER_KEY,
+                    pusherCluster: process.env.PUSHER_CLUSTER
+                });
+            }
             const { diff } = req.query;
             const topIds = await kv.zrange(`leaderboard:${diff}:ranks`, 0, 4, { rev: false });
             const results = [];
@@ -55,6 +56,8 @@ export default async function handler(req, res) {
 
         if (method === 'POST') {
             const { name, diff, time } = req.body;
+            if (!userEmail) return res.status(401).json({ error: "Auth required" });
+
             const memberId = `user:${userEmail}`;
             const existing = await kv.hget(`leaderboard:${diff}`, memberId);
             if (!existing || parseFloat(time) < existing.time) {
