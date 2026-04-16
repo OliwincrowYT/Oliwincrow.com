@@ -5,9 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c66cc537-a0f5-4e19-bb44-af0419d574f1" name="Changes" comment="New lol">
-      <change afterPath="$PROJECT_DIR$/api/roblox-ingame-tutor/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SpellingBee/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/score.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vercel.json" beforeDir="false" afterPath="$PROJECT_DIR$/vercel.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +15,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="13" />
+    <option name="cachedIndexableFilesCount" value="14" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -81,6 +81,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Blake\PycharmProjects\Oliwincrow.com" />
       <recent name="C:\Users\Blake\Oliwincrow.com" />
     </key>
   </component>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Bee Challenge</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #2ecc71;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+            --danger: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--dark);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h2 { margin-top: 0; color: var(--dark); }
+
+        select, input, button {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border-radius: 8px;
+            border: 2px solid #eee;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus { border-color: var(--primary); }
+        input[readonly] { background-color: #f0f0f0; cursor: not-allowed; }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover { background: #357abd; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+
+        .btn-secondary { background: #7f8c8d; margin-top: 0; }
+        .btn-secondary:hover { background: #95a5a6; }
+
+        #timer {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 2.5rem;
+            color: var(--danger);
+            font-weight: bold;
+            margin: 20px 0;
+            background: #fff5f5;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        /* Hide the word display since it's an audio test */
+        .word-display {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        .leaderboard {
+            margin-top: 30px;
+            text-align: left;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+
+        .score-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--light);
+            margin-bottom: 5px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .score-entry span:last-child { font-weight: bold; color: var(--secondary); }
+
+        .hidden { display: none; }
+        .loading-spinner { font-size: 0.8rem; color: #888; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="setup-area">
+        <h2>Spelling Master</h2>
+        <label style="font-size: 0.7rem; font-weight: bold; display: block; text-align: left; color: #666;">DIFFICULTY</label>
+        <select id="difficulty" onchange="displayLeaderboard()">
+            <option value="Easy">Easy</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Hard">Hard</option>
+            <option value="Expert">Expert</option>
+            <option value="Genius">Genius</option>
+            <option value="Troll">Troll</option>
+        </select>
+        <input type="text" id="username" placeholder="Enter your name" maxlength="15">
+        <button onclick="startGame()">Start Test</button>
+    </div>
+
+    <div id="game-area" class="hidden">
+        <div id="difficulty-tag" style="font-size: 0.7rem; font-weight: bold; color: #888; text-transform: uppercase;"></div>
+        <div class="word-display">Listen carefully...</div>
+        <button class="btn-secondary" onclick="speakWord()">🔊 Replay Word</button>
+        <div id="timer">00:00:000</div>
+        <input type="text" id="word-input" autocomplete="off" onpaste="return false" placeholder="Type what you hear...">
+        <button id="submit-btn" onclick="checkSpelling()">Submit</button>
+    </div>
+
+    <div class="leaderboard">
+        <h3 style="display:flex; justify-content: space-between; align-items: center;">
+            🏆 Leaderboard <span id="lb-loading" class="loading-spinner hidden">Updating...</span>
+        </h3>
+        <div id="leaderboard-content"></div>
+    </div>
+</div>
+
+<script>
+    const wordBank = {
+        Easy: ["Tree", "Apple", "Book", "Cloud", "Jump"],
+        Intermediate: ["Bullet", "Garden", "Kitchen", "Window", "Travel"],
+        Hard: ["Trapeze", "Acoustic", "Boulevard", "Hyphen", "Quarantine"],
+        Expert: ["Rhythm", "Pneumonia", "Onomatopoeia", "Queue", "Psychiatrist"],
+        Genius: ["Conscientious", "Maintenance", "Occurrence", "Pharaoh", "Handkerchief"],
+        Troll: ["Supercalifragilisticexpialidocious"]
+    };
+
+    let startTime, timerInterval, currentWord;
+
+    window.onload = displayLeaderboard;
+
+    function speakWord() {
+        if (!currentWord) return;
+        const utterance = new SpeechSynthesisUtterance(currentWord);
+        utterance.rate = 0.9; // Slightly slower for clarity
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function updateTimer() {
+        const now = new Date().getTime();
+        const diff = now - startTime;
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        const ms = diff % 1000;
+        document.getElementById('timer').innerText =
+            `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}:${ms.toString().padStart(3, '0')}`;
+    }
+
+    function startGame() {
+        const nameInput = document.getElementById('username');
+        const name = nameInput.value.trim();
+        if (!name) return alert("Please enter your name!");
+
+        const diff = document.getElementById('difficulty').value;
+        const words = wordBank[diff];
+        currentWord = words[Math.floor(Math.random() * words.length)];
+
+        nameInput.readOnly = true;
+        document.getElementById('difficulty-tag').innerText = `Level: ${diff}`;
+        document.getElementById('setup-area').classList.add('hidden');
+        document.getElementById('game-area').classList.remove('hidden');
+
+        const input = document.getElementById('word-input');
+        input.value = "";
+        input.focus();
+        input.onkeypress = (e) => { if(e.key === 'Enter') checkSpelling(); };
+
+        // Start the test by speaking the word
+        speakWord();
+
+        startTime = new Date().getTime();
+        timerInterval = setInterval(updateTimer, 10);
+    }
+
+    async function checkSpelling() {
+        const userValue = document.getElementById('word-input').value.trim();
+
+        if (userValue.toLowerCase() === currentWord.toLowerCase()) {
+            clearInterval(timerInterval);
+            const endTime = new Date().getTime();
+            const timeTaken = (endTime - startTime) / 1000;
+
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').innerText = "Saving...";
+
+            await saveScore(document.getElementById('username').value, document.getElementById('difficulty').value, timeTaken);
+
+            alert(`Correct! You spelled it right in ${timeTaken.toFixed(3)}s`);
+            resetGame();
+        } else {
+            alert("Incorrect spelling. Try again!");
+            document.getElementById('word-input').focus();
+        }
+    }
+
+    async function saveScore(name, diff, time) {
+        try {
+            await fetch('/api/score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, diff, time })
+            });
+            await displayLeaderboard();
+        } catch (e) {
+            console.error("Connection Error:", e);
+        }
+    }
+
+    async function displayLeaderboard() {
+        const diff = document.getElementById('difficulty').value;
+        const content = document.getElementById('leaderboard-content');
+        const loader = document.getElementById('lb-loading');
+
+        loader.classList.remove('hidden');
+
+        try {
+            const response = await fetch(`/api/score?diff=${diff}`);
+            const data = await response.json();
+
+            content.innerHTML = "";
+
+            if (!data || data.length === 0) {
+                content.innerHTML = `<div style="color:#888; font-size: 0.9rem;">No scores for ${diff} yet.</div>`;
+            } else {
+                for (let i = 0; i < data.length; i += 2) {
+                    const playerName = data[i].split(':')[0];
+                    const playerTime = data[i+1];
+                    content.innerHTML += `
+                        <div class="score-entry">
+                            <span>${playerName}</span>
+                            <span>${parseFloat(playerTime).toFixed(3)}s</span>
+                        </div>`;
+                }
+            }
+        } catch (e) {
+            content.innerHTML = `<div style="color:var(--danger); font-size: 0.8rem;">Leaderboard currently unavailable.</div>`;
+        } finally {
+            loader.classList.add('hidden');
+        }
+    }
+
+    function resetGame() {
+        document.getElementById('setup-area').classList.remove('hidden');
+        document.getElementById('game-area').classList.add('hidden');
+        document.getElementById('username').readOnly = false;
+        document.getElementById('submit-btn').disabled = false;
+        document.getElementById('submit-btn').innerText = "Submit";
+        currentWord = null;
+        clearInterval(timerInterval);
+        document.getElementById('timer').innerText = "00:00:000";
+    }
+</script>
+
+</body>
+</html>
