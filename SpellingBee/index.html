@@ -3,327 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OLIWIN CROW | Spelling Bee</title>
+    <title>OLIWIN CROW | Spelling Bee Pro</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://js.pusher.com/8.0.1/pusher.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-base: #0f1115;
-            --bg-card: #1a1d23;
-            --accent-purple: #8b5cf6;
-            --accent-glow: rgba(139, 92, 246, 0.4);
-            --text-main: #e2e8f0;
-            --text-dim: #94a3b8;
-            --border-subtle: #2d333d;
-            --danger: #ef4444;
-        }
-
+        :root { --bg: #0f1115; --card: #1a1d23; --accent: #8b5cf6; --text: #e2e8f0; --dim: #94a3b8; --border: #2d333d; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; padding-top: 100px; background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%); }
 
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            line-height: 1.6;
-            min-height: 100vh;
-            background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
-        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .game-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px; text-align: center; position: relative; }
 
-        /* --- NAV --- */
-        header {
-            height: 75px;
-            background: rgba(15, 17, 21, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            position: fixed; top: 0; width: 100%; z-index: 1000;
-        }
+        #timer { font-size: 5rem; font-weight: 800; text-shadow: 0 0 30px rgba(139, 92, 246, 0.4); margin: 20px 0; }
 
-        .brand-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: white; font-weight: 800; font-size: 1.3rem; }
-        .brand-logo .dot { width: 8px; height: 8px; background: var(--accent-purple); border-radius: 50%; box-shadow: 0 0 12px var(--accent-purple); }
+        input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 18px; border-radius: 14px; color: white; font-size: 1.2rem; text-align: center; outline: none; transition: 0.3s; margin-bottom: 20px; }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(139, 92, 246, 0.1); }
 
-        /* --- HERO / STAGE --- */
-        .stage {
-            padding: 140px 20px 60px;
-            text-align: center;
-            max-width: 900px;
-            margin: 0 auto;
-        }
+        .btn { background: var(--accent); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 10px; text-transform: uppercase; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(139, 92, 246, 0.4); }
+        .btn-host { background: #22c55e; margin-top: 10px; }
 
-        #timer {
-            font-size: 5rem;
-            font-weight: 800;
-            color: #fff;
-            text-shadow: 0 0 30px var(--accent-glow);
-            font-variant-numeric: tabular-nums;
-            margin: 20px 0;
-        }
-
-        /* --- GAME CARD --- */
-        .game-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 24px;
-            padding: 40px;
-            position: relative;
-            overflow: hidden;
-            transition: 0.3s;
-        }
-
-        .game-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-purple), transparent);
-        }
-
-        input[type="text"] {
-            width: 100%;
-            background: var(--bg-base);
-            border: 1px solid var(--border-subtle);
-            padding: 18px 24px;
-            border-radius: 14px;
-            color: white;
-            font-size: 1.2rem;
-            text-align: center;
-            outline: none;
-            transition: 0.3s;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
-        }
-
-        .btn {
-            background: var(--accent-purple);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 25px var(--accent-glow);
-        }
-
-        .btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); }
-
-        /* --- LEADERBOARD --- */
-        .leaderboard-section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .lb-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 24px;
-        }
-
-        .score-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .score-entry:last-child { border: none; }
+        .multi-hud { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .mini-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 15px; }
 
         .hidden { display: none !important; }
-
-        /* --- AUTH DOCK --- */
-        #auth-dock {
-            position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%);
-            z-index: 1100;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
+        #auth-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 100; }
     </style>
 </head>
 <body>
 
-<header>
-    <a href="#" class="brand-logo">
-        <div class="dot"></div>
-        <span>OLIWI</span>
-        <span style="color: var(--accent-purple)">NCROW</span>
-    </a>
-    <div style="display: flex; gap: 10px;">
-        <select id="diff-select" onchange="loadLeaderboard()" style="background: transparent; color: var(--text-dim); border: 1px solid var(--border-subtle); padding: 5px 15px; border-radius: 8px;">
-            <option value="Easy">Easy</option>
-            <option value="Hard">Hard</option>
-            <option value="Troll">Troll</option>
-        </select>
-    </div>
-</header>
-
-<main class="stage">
-    <div id="setup-area" class="game-card" data-tilt>
-        <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Spelling <span style="color:var(--accent-purple)">Bee</span></h1>
-        <p style="color: var(--text-dim); margin-bottom: 30px;">Compete for the fastest time in our secure repository.</p>
-
-        <div id="logged-in-controls" class="hidden">
-            <input type="text" id="display-name" placeholder="Enter Display Name" maxlength="15">
-            <button class="btn" onclick="startTest()">
-                <i data-lucide="play" size="18"></i> Start Test
-            </button>
-        </div>
-
-        <div id="login-prompt" style="color: var(--text-dim);">
-            <i data-lucide="lock" size="40" style="margin-bottom: 15px; opacity: 0.5;"></i>
-            <p>Please authenticate below to access the stage</p>
-        </div>
-    </div>
-
-    <div id="game-area" class="hidden">
-        <div id="timer">00:00.000</div>
-        <div class="game-card" data-tilt>
-            <button class="btn btn-secondary" onclick="playSound()" style="margin-bottom: 20px;">
-                <i data-lucide="volume-2"></i> Replay Audio
-            </button>
-            <input type="text" id="word-input" placeholder="Spell the word..." autocomplete="off">
-            <button class="btn" id="submit-btn" onclick="checkWord()">Submit</button>
-        </div>
-    </div>
-</main>
-
-<div class="leaderboard-section">
-    <div class="lb-card" data-tilt>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h3 style="font-size: 1.2rem;"><i data-lucide="trophy" size="18" style="color:var(--accent-purple); vertical-align:middle;"></i> Top Players</h3>
-            <span id="category-tag" class="status-tag" style="font-size:0.7rem; color:var(--accent-purple); background:rgba(139,92,246,0.1); padding:4px 10px; border-radius:20px;">Easy</span>
-        </div>
-        <div id="leaderboard-content">
+<div class="container">
+    <div id="game-view">
+        <div id="setup-card" class="game-card">
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">The <span style="color:var(--accent)">Stage</span></h1>
+            <p style="color:var(--dim); margin-bottom:30px;">Waiting for host to set the word...</p>
+            <div id="player-setup" class="hidden">
+                <input type="text" id="p-name" placeholder="Username">
+                <p style="font-size:0.8rem; color:var(--accent);">YOU ARE CONNECTED</p>
             </div>
+        </div>
+
+        <div id="active-game" class="hidden">
+            <div id="timer">00:00.000</div>
+            <div class="game-card">
+                <input type="text" id="word-input" placeholder="Type word here..." autocomplete="off">
+                <button class="btn" onclick="submitAttempt()">Submit</button>
+            </div>
+        </div>
+
+        <div class="multi-hud">
+            <div class="mini-card" id="host-panel">
+                <h3 style="color:var(--accent); font-size:0.8rem; margin-bottom:10px;">HOST CONSOLE</h3>
+                <input type="text" id="host-word" placeholder="Custom word..." style="padding:10px; font-size:0.9rem;">
+                <button class="btn btn-host" style="width:100%;" onclick="broadcastWord()">Set & Start</button>
+            </div>
+            <div class="mini-card">
+                <h3 style="color:var(--accent); font-size:0.8rem; margin-bottom:10px;">LEADERBOARD</h3>
+                <div id="lb-data" style="font-size:0.8rem;"></div>
+            </div>
+        </div>
     </div>
 </div>
 
 <div id="auth-dock">
-    <div id="g_id_onload" data-client_id="FETCHING" data-callback="onAuth"></div>
-    <div id="google-btn-container"></div>
-    <button id="admin-reset" class="btn btn-secondary hidden" onclick="resetDB()" style="color:var(--danger); font-size:0.8rem; padding:8px 16px;">
-        <i data-lucide="trash-2" size="14"></i> Reset Database
-    </button>
+    <div id="g-btn"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
 <script>
-    const WORDS = { Easy: ["Apple"], Hard: ["Rhythm"], Troll: ["Supercalifragilisticexpialidocious"] };
-    let currentWord, startTime, timerInterval;
-    window.token = null;
+    let curWord, startT, interval, pusher, channel;
+    const room = "global-room"; // You can make this dynamic later
 
-    // Load initial data
     window.onload = async () => {
         lucide.createIcons();
-        VanillaTilt.init(document.querySelectorAll("[data-tilt]"), { max: 10, speed: 400, glare: true, "max-glare": 0.2 });
+        const cfg = await (await fetch('/api/score?config=true')).json();
 
-        // Fetch Client ID
-        const res = await fetch('/api/score?config=true');
-        const { clientId } = await res.json();
+        // Google Auth
+        google.accounts.id.initialize({ client_id: cfg.clientId, callback: (r) => {
+            window.token = r.credential;
+            document.getElementById('player-setup').classList.remove('hidden');
+        }});
+        google.accounts.id.renderButton(document.getElementById("g-btn"), { theme: "filled_black" });
 
-        google.accounts.id.initialize({ client_id: clientId, callback: onAuth });
-        google.accounts.id.renderButton(document.getElementById("google-btn-container"), { theme: "filled_black", shape: "pill" });
+        // Pusher Real-time
+        pusher = new Pusher(cfg.pusherKey, { cluster: cfg.pusherCluster });
+        channel = pusher.subscribe(room);
 
-        loadLeaderboard();
+        channel.bind('new-word', (data) => {
+            curWord = data.word;
+            startRound();
+        });
+
+        loadLB();
     };
 
-    function onAuth(response) {
-        window.token = response.credential;
-        document.getElementById('logged-in-controls').classList.remove('hidden');
-        document.getElementById('login-prompt').classList.add('hidden');
-        checkAdmin();
+    async function broadcastWord() {
+        const val = document.getElementById('host-word').value.trim();
+        const res = await fetch('/api/score', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ action: 'host_command', command: 'set_word', value: val, room, token: window.token })
+        });
+        if(!res.ok) alert("Word not recognized by dictionary!");
     }
 
-    async function checkAdmin() {
-        const res = await fetch('/api/score', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({token: window.token}) });
-        const { isAdmin } = await res.json();
-        if(isAdmin) document.getElementById('admin-reset').classList.remove('hidden');
-    }
-
-    function playSound() {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(currentWord);
-        u.rate = 0.8;
-        window.speechSynthesis.speak(u);
-    }
-
-    function startTest() {
-        if(!document.getElementById('display-name').value) return alert("Enter a name first!");
-
-        const diff = document.getElementById('diff-select').value;
-        currentWord = WORDS[diff][0];
-
-        document.getElementById('setup-area').classList.add('hidden');
-        document.getElementById('game-area').classList.remove('hidden');
+    function startRound() {
+        document.getElementById('setup-card').classList.add('hidden');
+        document.getElementById('active-game').classList.remove('hidden');
+        document.getElementById('word-input').value = "";
         document.getElementById('word-input').focus();
 
-        playSound();
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-            const delta = Date.now() - startTime;
-            const s = Math.floor(delta/1000).toString().padStart(2,'0');
-            const ms = (delta%1000).toString().padStart(3,'0');
+        // TTS
+        const u = new SpeechSynthesisUtterance(curWord);
+        u.rate = 0.8;
+        window.speechSynthesis.speak(u);
+
+        startT = Date.now();
+        interval = setInterval(() => {
+            const d = Date.now() - startT;
+            const s = Math.floor(d/1000).toString().padStart(2,'0');
+            const ms = (d%1000).toString().padStart(3,'0');
             document.getElementById('timer').innerText = `${s}:${ms}`;
         }, 10);
     }
 
-    async function checkWord() {
-        if(document.getElementById('word-input').value.toLowerCase().trim() === currentWord.toLowerCase()) {
-            clearInterval(timerInterval);
-            const timeTaken = (Date.now() - startTime) / 1000;
-
-            document.getElementById('submit-btn').innerText = "Uploading...";
+    async function submitAttempt() {
+        if(document.getElementById('word-input').value.toLowerCase().trim() === curWord.toLowerCase()) {
+            clearInterval(interval);
+            const time = (Date.now() - startT) / 1000;
             await fetch('/api/score', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({
-                    name: document.getElementById('display-name').value,
-                    diff: document.getElementById('diff-select').value,
-                    time: timeTaken,
-                    token: window.token
-                })
+                body: JSON.stringify({ name: document.getElementById('p-name').value, diff: 'Multiplayer', time, token: window.token })
             });
+            alert("Finished in " + time + "s!");
             location.reload();
         }
     }
 
-    async function loadLeaderboard() {
-        const diff = document.getElementById('diff-select').value;
-        document.getElementById('category-tag').innerText = diff;
-        const res = await fetch(`/api/score?diff=${diff}`);
-        const data = await res.json();
-
-        const container = document.getElementById('leaderboard-content');
-        container.innerHTML = "";
-        for(let i=0; i < data.length; i+=2) {
-            container.innerHTML += `
-                <div class="score-entry">
-                    <span style="font-weight:600;">${data[i]}</span>
-                    <span style="color:var(--accent-purple); font-weight:800;">${data[i+1]}s</span>
-                </div>`;
-        }
-    }
-
-    async function resetDB() {
-        if(confirm("Wipe this category?")) {
-            await fetch('/api/score', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({diff: document.getElementById('diff-select').value, token: window.token}) });
-            loadLeaderboard();
-        }
+    async function loadLB() {
+        const r = await fetch('/api/score?diff=Multiplayer');
+        const d = await r.json();
+        let h = "";
+        for(let i=0; i<d.length; i+=2) h += `<div>${d[i]}: <span style="color:var(--accent)">${d[i+1]}s</span></div>`;
+        document.getElementById('lb-data').innerHTML = h || "No runs yet";
     }
 </script>
 </body>
