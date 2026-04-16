@@ -12,51 +12,37 @@ export default async function handler(req, res) {
             userEmail = payload.email;
         }
 
-        if (method === 'POST') {
-            const { name, diff, time } = req.body;
-            if (!userEmail) return res.status(401).json({ error: "Login required" });
-
-            const numericTime = parseFloat(time);
-            const leaderboardKey = `leaderboard:${diff}`;
-            const memberId = `user:${userEmail}`;
-
-            const existingData = await kv.hget(leaderboardKey, memberId);
-            const currentBest = existingData ? existingData.time : Infinity;
-
-            if (numericTime < currentBest) {
-                await kv.hset(leaderboardKey, { [memberId]: { time: numericTime, name: name } });
-                await kv.zadd(`${leaderboardKey}:ranks`, { score: numericTime, member: memberId });
-            }
-            return res.status(200).json({ success: true });
-        }
-
         if (method === 'GET') {
-            // If the frontend asks for "config", send the Client ID
-            if (req.query.config === 'true') {
-                return res.status(200).json({ clientId: GOOGLE_CLIENT_ID });
-            }
-
+            if (req.query.config === 'true') return res.status(200).json({ clientId: GOOGLE_CLIENT_ID });
             const { diff } = req.query;
-            const leaderboardKey = `leaderboard:${diff}`;
-            const topIds = await kv.zrange(`${leaderboardKey}:ranks`, 0, 4, { rev: false });
+            const topIds = await kv.zrange(`leaderboard:${diff}:ranks`, 0, 4, { rev: false });
             const results = [];
             for (const id of topIds) {
-                const data = await kv.hget(leaderboardKey, id);
-                if (data) { results.push(data.name); results.push(data.time); }
+                const data = await kv.hget(`leaderboard:${diff}`, id);
+                if (data) { results.push(data.name, data.time); }
             }
             return res.status(200).json(results);
         }
 
-        if (method === 'DELETE') {
-            if (userEmail !== ADMIN_EMAIL) return res.status(403).json({ error: "Unauthorized" });
-            await kv.del(`leaderboard:${req.body.diff}`);
-            await kv.del(`leaderboard:${req.body.diff}:ranks`);
+        if (method === 'POST') {
+            const { name, diff, time } = req.body;
+            if (!userEmail) return res.status(401).json({ error: "Login required" });
+            const memberId = `user:${userEmail}`;
+            const existingData = await kv.hget(`leaderboard:${diff}`, memberId);
+            if (!existingData || parseFloat(time) < existingData.time) {
+                await kv.hset(`leaderboard:${diff}`, { [memberId]: { time: parseFloat(time), name: name } });
+                await kv.zadd(`leaderboard:${diff}:ranks`, { score: parseFloat(time), member: memberId });
+            }
             return res.status(200).json({ success: true });
         }
 
-        if (method === 'PUT') {
-            return res.status(200).json({ isAdmin: userEmail === ADMIN_EMAIL });
+        if (method === 'DELETE') {
+            if (userEmail !== ADMIN_EMAIL) return res.status(403).json({ error: "Unauthorized" });
+            await kv.del(`leaderboard:${req.body.diff}`, `leaderboard:${req.body.diff}:ranks`);
+            return res.status(200).json({ success: true });
         }
+
+        if (method === 'PUT') return res.status(200).json({ isAdmin: userEmail === ADMIN_EMAIL });
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }

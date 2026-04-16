@@ -3,284 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spelling Bee Pro</title>
+    <title>Spelling Bee Stage</title>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        :root {
-            --ui-bg: rgba(20, 20, 20, 0.85);
-            --accent: #00ffcc;
-            --text: #ffffff;
-            --danger: #ff4d4d;
-        }
-
+        :root { --accent: #00ffcc; --bg: #0a0a0a; --panel: rgba(0,0,0,0.8); }
         body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #1a1a1a; /* Dark background like the forest in the image */
-            color: var(--text);
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            background: #121212; color: white; font-family: 'Arial Black', sans-serif;
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
         }
-
-        /* Full Screen Game UI */
-        .game-viewport {
-            position: relative;
-            width: 100vw; height: 100vh;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: radial-gradient(circle, #2c3e50 0%, #000000 100%);
+        /* The Big Screen from your screenshot */
+        .stage-container {
+            width: 85vw; max-width: 900px; height: 60vh;
+            background: var(--panel);
+            border: 10px solid #333; border-radius: 8px;
+            box-shadow: 0 0 0 5px #111, 0 0 40px rgba(0,255,204,0.2);
+            position: relative; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
         }
-
-        /* The LED Stage Border from the screenshot */
-        .stage-frame {
-            border: 8px solid #333;
-            border-radius: 12px;
-            padding: 40px;
-            background: var(--ui-bg);
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 50px rgba(0,0,0,0.8);
-            width: 80%; max-width: 700px;
-            text-align: center;
-            position: relative;
+        /* LED Border lights effect */
+        .stage-container::after {
+            content: ''; position: absolute; top: -15px; left: -15px; right: -15px; bottom: -15px;
+            border: 6px dotted #555; border-radius: 12px; pointer-events: none;
         }
+        #timer { font-size: 6rem; color: #fff; text-shadow: 0 0 20px var(--accent); margin: 10px 0; }
+        h2 { font-size: 3rem; margin: 0; letter-spacing: -2px; color: var(--accent); }
 
-        .stage-frame::before {
-            content: ''; position: absolute; top: -12px; left: -12px; right: -12px; bottom: -12px;
-            border: 4px dashed var(--accent); border-radius: 16px; opacity: 0.3;
-            animation: rotateLights 5s linear infinite;
+        .ui-row { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        input {
+            background: #000; border: 3px solid #444; color: var(--accent);
+            font-size: 2rem; padding: 15px; width: 60%; text-align: center; border-radius: 10px;
         }
-
-        @keyframes rotateLights { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-
-        h2 { font-size: 2.5rem; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 20px; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-
-        #timer {
-            font-size: 5rem;
-            font-weight: 900;
-            color: var(--text);
-            text-shadow: 0 0 20px rgba(255,255,255,0.5);
-            margin: 20px 0;
-            font-variant-numeric: tabular-nums;
-        }
-
-        input[type="text"] {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid var(--accent);
-            border-radius: 50px;
-            padding: 15px 30px;
-            color: white;
-            font-size: 1.5rem;
-            width: 80%;
-            text-align: center;
-            transition: 0.3s;
-        }
-
-        input:focus { outline: none; background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--accent); }
+        input:focus { border-color: var(--accent); outline: none; }
 
         button {
-            background: var(--accent);
-            color: #000;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            text-transform: uppercase;
-            margin: 10px;
+            background: var(--accent); color: #000; border: none; padding: 15px 40px;
+            font-size: 1.2rem; font-weight: 900; cursor: pointer; border-radius: 5px;
+            text-transform: uppercase; transition: 0.1s;
         }
+        button:active { transform: scale(0.95); }
+        button:disabled { background: #444; cursor: not-allowed; }
 
-        button:hover { transform: scale(1.05); filter: brightness(1.2); }
-
-        /* Floating Leaderboard (Like a HUD) */
-        .hud-leaderboard {
-            position: absolute; top: 20px; right: 20px;
-            background: rgba(0,0,0,0.6);
-            padding: 20px; border-radius: 12px;
-            width: 250px; border: 1px solid rgba(255,255,255,0.1);
+        /* HUD Leaderboard */
+        .hud-lb {
+            position: absolute; top: 20px; right: -250px; width: 220px;
+            background: rgba(0,0,0,0.7); padding: 15px; border-radius: 5px;
+            font-family: sans-serif; font-weight: bold; text-align: left;
         }
-
-        .hud-leaderboard h3 { margin: 0 0 10px 0; font-size: 0.9rem; color: var(--accent); text-transform: uppercase; }
-
-        .score-row {
-            display: flex; justify-content: space-between;
-            font-size: 0.85rem; padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
+        .score-item { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 5px 0; }
         .hidden { display: none !important; }
-
-        #auth-status { position: absolute; bottom: 20px; left: 20px; }
+        #auth-area { position: fixed; bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
 
-<div class="game-viewport">
-    <div class="hud-leaderboard">
-        <h3>🏆 Top Performance</h3>
-        <div id="leaderboard-content"></div>
-    </div>
+    <div class="stage-container">
+        <div class="hud-lb">
+            <div style="color:var(--accent); margin-bottom:10px;">TOP PLAYERS</div>
+            <div id="lb-list"></div>
+        </div>
 
-    <div class="stage-frame">
-        <div id="setup-area">
-            <h2>Spelling Bee</h2>
-            <select id="difficulty" onchange="displayLeaderboard()" style="width: auto; padding: 10px; border-radius: 5px; background: #333; color: white;">
-                <option value="Easy">Easy</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Hard">Hard</option>
-                <option value="Expert">Expert</option>
-                <option value="Genius">Genius</option>
-                <option value="Troll">Troll</option>
+        <div id="setup-screen">
+            <h2>SPELLING BEE</h2>
+            <select id="diff" onchange="loadLB()" style="background:#222; color:#fff; border:none; padding:10px; margin-bottom:20px;">
+                <option value="Easy">EASY</option><option value="Hard">HARD</option><option value="Troll">TROLL</option>
             </select>
-
-            <div id="game-controls" class="hidden">
-                <input type="text" id="username" placeholder="Enter Player Name" maxlength="15">
-                <br>
-                <button onclick="startGame()">Join Stage</button>
-            </div>
-
-            <div id="login-msg" style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">
-                AUTHENTICATION REQUIRED TO JOIN
+            <div class="ui-row">
+                <input type="text" id="p-name" placeholder="YOUR NAME" maxlength="12">
+                <button id="start-btn" onclick="startGame()">START STAGE</button>
             </div>
         </div>
 
-        <div id="game-area" class="hidden">
+        <div id="game-screen" class="hidden">
             <div id="timer">00:00.000</div>
-            <button style="background:#555; color: white;" onclick="speakWord()">🔊 Replay Word</button>
-            <br><br>
-            <input type="text" id="word-input" autocomplete="off" onpaste="return false" placeholder="Type Word...">
-            <br>
-            <button id="submit-btn" onclick="checkSpelling()">Submit</button>
+            <div class="ui-row">
+                <input type="text" id="word-box" autocomplete="off" placeholder="TYPE...">
+                <button onclick="checkWord()">SUBMIT</button>
+                <button onclick="hear()" style="background:#444; color:#fff; font-size:0.8rem;">REPLAY AUDIO</button>
+            </div>
         </div>
     </div>
 
-    <div id="auth-status">
-        <div id="google-btn"></div>
-        <button id="reset-btn" class="hidden" onclick="resetLB()" style="background:var(--danger); color: white; font-size: 0.7rem; padding: 5px 10px;">RESET DB</button>
+    <div id="auth-area">
+        <div id="g-btn"></div>
+        <button id="admin-wipe" class="hidden" onclick="wipe()" style="background:red; color:white; font-size:0.6rem;">WIPE DATA</button>
     </div>
-</div>
 
 <script>
-    const wordBank = {
-        Easy: ["Apple", "Cloud", "Lemon"],
-        Intermediate: ["Garden", "Kitchen"],
-        Hard: ["Boulevard", "Hyphen"],
-        Expert: ["Rhythm", "Pneumonia"],
-        Genius: ["Pharaoh", "Maintenance"],
-        Troll: ["Supercalifragilisticexpialidocious"]
+    const words = { Easy: ["Apple"], Hard: ["Rhythm"], Troll: ["Supercalifragilisticexpialidocious"] };
+    let curWord, startT, interval;
+    window.token = null;
+
+    // Safety: Load LB even if auth fails
+    window.onload = () => {
+        setupAuth();
+        loadLB();
     };
 
-    let startTime, timerInterval, currentWord;
-    window.userToken = null;
-
-    window.onload = async () => {
-        await initGoogleAuth();
-        displayLeaderboard();
-    };
-
-    async function initGoogleAuth() {
+    async function setupAuth() {
         try {
-            const res = await fetch('/api/score?config=true');
-            const { clientId } = await res.json();
-            google.accounts.id.initialize({ client_id: clientId, callback: handleAuth });
-            google.accounts.id.renderButton(document.getElementById("google-btn"), { theme: "filled_black", size: "medium", shape: "pill" });
-        } catch (e) { console.error("Auth failed", e); }
+            const r = await fetch('/api/score?config=true');
+            const d = await r.json();
+            google.accounts.id.initialize({ client_id: d.clientId, callback: (res) => {
+                window.token = res.credential;
+                document.getElementById('start-btn').disabled = false;
+                checkAdmin();
+            }});
+            google.accounts.id.renderButton(document.getElementById("g-btn"), { theme: "filled_black" });
+        } catch(e) { console.log("Auth offline"); }
     }
 
-    async function handleAuth(response) {
-        window.userToken = response.credential;
-        document.getElementById('game-controls').classList.remove('hidden');
-        document.getElementById('login-msg').classList.add('hidden');
-        const res = await fetch('/api/score', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: response.credential }) });
-        const data = await res.json();
-        if (data.isAdmin) document.getElementById('reset-btn').classList.remove('hidden');
+    async function checkAdmin() {
+        const r = await fetch('/api/score', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({token: window.token}) });
+        const d = await r.json();
+        if(d.isAdmin) document.getElementById('admin-wipe').classList.remove('hidden');
     }
 
-    function speakWord() {
+    function hear() {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(currentWord);
+        let u = new SpeechSynthesisUtterance(curWord);
         u.rate = 0.8;
         window.speechSynthesis.speak(u);
     }
 
     function startGame() {
-        const name = document.getElementById('username').value.trim();
-        if (!name) return alert("Identify yourself!");
+        if(!window.token) return alert("Log in first!");
+        const name = document.getElementById('p-name').value.trim();
+        if(!name) return alert("Enter a name!");
 
-        const diff = document.getElementById('difficulty').value;
-        const words = wordBank[diff];
-        currentWord = words[Math.floor(Math.random() * words.length)];
+        curWord = words[document.getElementById('diff').value][0];
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
 
-        document.getElementById('setup-area').classList.add('hidden');
-        document.getElementById('game-area').classList.remove('hidden');
+        document.getElementById('word-box').value = "";
+        document.getElementById('word-box').focus();
 
-        const input = document.getElementById('word-input');
-        input.value = ""; input.focus();
-        input.onkeypress = (e) => { if(e.key === 'Enter') checkSpelling(); };
-
-        speakWord();
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-            const d = Date.now() - startTime;
-            const s = Math.floor(d / 1000);
-            const ms = d % 1000;
-            document.getElementById('timer').innerText = `${s.toString().padStart(2,'0')}:${ms.toString().padStart(3,'0')}`;
+        hear();
+        startT = Date.now();
+        interval = setInterval(() => {
+            let d = Date.now() - startT;
+            let s = Math.floor(d/1000).toString().padStart(2,'0');
+            let ms = (d%1000).toString().padStart(3,'0');
+            document.getElementById('timer').innerText = `${s}:${ms}`;
         }, 10);
     }
 
-    async function checkSpelling() {
-        if (document.getElementById('word-input').value.trim().toLowerCase() === currentWord.toLowerCase()) {
-            clearInterval(timerInterval);
-            const time = (Date.now() - startTime) / 1000;
-            document.getElementById('submit-btn').innerText = "RECORDING...";
-
+    async function checkWord() {
+        if(document.getElementById('word-box').value.toLowerCase().trim() === curWord.toLowerCase()) {
+            clearInterval(interval);
+            const finalT = (Date.now() - startT) / 1000;
             await fetch('/api/score', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type':'application/json'},
                 body: JSON.stringify({
-                    name: document.getElementById('username').value,
-                    diff: document.getElementById('difficulty').value,
-                    time,
-                    token: window.userToken
+                    name: document.getElementById('p-name').value,
+                    diff: document.getElementById('diff').value,
+                    time: finalT,
+                    token: window.token
                 })
             });
-            resetGame();
-            displayLeaderboard();
-        } else {
-            document.getElementById('stage-frame').style.borderColor = 'red';
-            setTimeout(() => document.getElementById('stage-frame').style.borderColor = '#333', 500);
+            location.reload(); // Quick reset
         }
     }
 
-    async function displayLeaderboard() {
-        const diff = document.getElementById('difficulty').value;
-        const res = await fetch(`/api/score?diff=${diff}`);
-        const data = await res.json();
-        const container = document.getElementById('leaderboard-content');
-        container.innerHTML = "";
-        for (let i = 0; i < data.length; i += 2) {
-            container.innerHTML += `
-                <div class="score-row">
-                    <span>${data[i]}</span>
-                    <span style="color:var(--accent)">${parseFloat(data[i+1]).toFixed(3)}s</span>
-                </div>`;
+    async function loadLB() {
+        const r = await fetch(`/api/score?diff=${document.getElementById('diff').value}`);
+        const d = await r.json();
+        let html = "";
+        for(let i=0; i<d.length; i+=2) {
+            html += `<div class="score-item"><span>${d[i]}</span><span style="color:var(--accent)">${d[i+1]}s</span></div>`;
         }
+        document.getElementById('lb-list').innerHTML = html || "Empty";
     }
 
-    async function resetLB() {
-        if (confirm("Wipe this category?")) {
-            await fetch('/api/score', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ diff: document.getElementById('difficulty').value, token: window.userToken })
-            });
-            displayLeaderboard();
+    async function wipe() {
+        if(confirm("Wipe?")) {
+            await fetch('/api/score', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({diff: document.getElementById('diff').value, token: window.token}) });
+            loadLB();
         }
-    }
-
-    function resetGame() {
-        document.getElementById('setup-area').classList.remove('hidden');
-        document.getElementById('game-area').classList.add('hidden');
-        document.getElementById('submit-btn').innerText = "Submit";
-        clearInterval(timerInterval);
     }
 </script>
 </body>
