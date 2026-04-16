@@ -3,6 +3,7 @@ import { kv } from '@vercel/kv';
 export default async function handler(req, res) {
     const { method } = req;
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
     try {
         let userEmail = null;
@@ -17,38 +18,31 @@ export default async function handler(req, res) {
 
             const numericTime = parseFloat(time);
             const leaderboardKey = `leaderboard:${diff}`;
-            const memberId = `user:${userEmail}`; // Locked to email
+            const memberId = `user:${userEmail}`;
 
-            // 1. Get the current best for THIS email
             const existingData = await kv.hget(leaderboardKey, memberId);
             const currentBest = existingData ? existingData.time : Infinity;
 
-            // 2. Only update if the new time is actually faster
             if (numericTime < currentBest) {
-                // This replaces their previous "Fred" with the new name/time
-                // They can never have more than ONE entry in this category
-                await kv.hset(leaderboardKey, {
-                    [memberId]: { time: numericTime, name: name }
-                });
+                await kv.hset(leaderboardKey, { [memberId]: { time: numericTime, name: name } });
                 await kv.zadd(`${leaderboardKey}:ranks`, { score: numericTime, member: memberId });
             }
             return res.status(200).json({ success: true });
         }
 
         if (method === 'GET') {
+            // If the frontend asks for "config", send the Client ID
+            if (req.query.config === 'true') {
+                return res.status(200).json({ clientId: GOOGLE_CLIENT_ID });
+            }
+
             const { diff } = req.query;
             const leaderboardKey = `leaderboard:${diff}`;
-
-            // Get top 5 unique user IDs
             const topIds = await kv.zrange(`${leaderboardKey}:ranks`, 0, 4, { rev: false });
-
             const results = [];
             for (const id of topIds) {
                 const data = await kv.hget(leaderboardKey, id);
-                if (data) {
-                    results.push(data.name);
-                    results.push(data.time);
-                }
+                if (data) { results.push(data.name); results.push(data.time); }
             }
             return res.status(200).json(results);
         }
