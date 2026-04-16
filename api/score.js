@@ -2,36 +2,36 @@ import { kv } from '@vercel/kv';
 
 export default async function handler(req, res) {
     const { method } = req;
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL; // Pull from Vercel Env
 
     try {
         if (method === 'POST') {
-            const { name, diff, time } = req.body;
-            const numericTime = parseFloat(time);
-            const key = `leaderboard:${diff}`;
-
-            // 1. Check if this user already has a score in this category
-            // We use the name as the member ID to make it unique per person
-            const existingTime = await kv.zscore(key, name);
-
-            // 2. Only update if they don't have a score, or if the new time is FASTER (lower)
-            if (existingTime === null || numericTime < existingTime) {
-                await kv.zadd(key, { score: numericTime, member: name });
-                return res.status(200).json({ success: true, updated: true });
-            }
-
-            return res.status(200).json({ success: true, updated: false, msg: "Keep practicing! Previous time was faster." });
+            // ... (Your existing POST logic)
         }
 
         if (method === 'GET') {
-            const { diff } = req.query;
-            // Get top 5 fastest times
-            const results = await kv.zrange(`leaderboard:${diff}`, 0, 4, {
-                withScores: true,
-                rev: false
-            });
-
-            return res.status(200).json(results);
+            // ... (Your existing GET logic)
         }
+
+        if (method === 'DELETE') {
+            const { token, diff } = req.body;
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+
+            if (payload.email !== ADMIN_EMAIL) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            await kv.del(`leaderboard:${diff}`);
+            return res.status(200).json({ success: true });
+        }
+
+        // New helper for the frontend to check admin status
+        if (method === 'PUT') {
+            const { token } = req.body;
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            return res.status(200).json({ isAdmin: payload.email === ADMIN_EMAIL });
+        }
+
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
